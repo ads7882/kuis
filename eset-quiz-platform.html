@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESET Quiz Platform</title>
+<title>Prosperita Assesment Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
@@ -385,7 +385,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
   <div class="topbar">
     <div class="brand">
       <div class="brand-icon">🛡️</div>
-      <div><div class="brand-name">ESET Quiz</div><div class="brand-tag">BUSINESS PLATFORM</div></div>
+      <div><div class="brand-name">PROSPERITA</div><div class="brand-tag">ASSESMENT PLATFORM</div></div>
     </div>
     <div class="topbar-actions" style="display:flex;gap:8px;">
       <button class="btn btn-ghost btn-sm" onclick="goTo('pgAdminLogin')">🔐 Admin</button>
@@ -393,9 +393,9 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
     </div>
   </div>
   <div class="hero">
-    <div class="hero-eyebrow">ESET Business Knowledge Challenge</div>
-    <h1 class="hero-h1">Uji Keahlian<br>ESET Kamu</h1>
-    <p class="hero-sub">Platform kuis interaktif untuk tim IT — Security Management, IT Operations, dan Security Operations Center</p>
+    <div class="hero-eyebrow">Prosperita Knowledge Challenge</div>
+    <h1 class="hero-h1">Uji Keahlian<br>Pengetahuan Kamu</h1>
+    <p class="hero-sub">Platform assesment interaktif untuk tim IT — Security Management, IT Operations, dan Security Operations Center</p>
     <div class="hero-btns">
       <button class="btn btn-primary btn-lg" onclick="goTo('pgGuest')">▶ Mulai Kuis</button>
       <button class="btn btn-ghost btn-lg" onclick="goTo('pgAdminLogin')">🔐 Admin Panel</button>
@@ -417,7 +417,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
     <div style="text-align:center;margin-bottom:24px;">
       <div style="font-size:40px;margin-bottom:8px;">🔐</div>
       <div style="font-family:var(--head);font-size:22px;font-weight:800;">Admin Panel</div>
-      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px;">ESET QUIZ PLATFORM</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px;">PROSPERITA ASSESMENT PLATFORM</div>
     </div>
     <div class="card">
       <div class="field">
@@ -446,7 +446,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
   <div class="topbar">
     <div class="brand">
       <div class="brand-icon">🛡️</div>
-      <div><div class="brand-name">ESET Quiz</div><div class="brand-tag">ADMIN PANEL</div></div>
+      <div><div class="brand-name">PROSPERITA</div><div class="brand-tag">ASSESMENT PLATFORM</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <span class="chip chip-green"><span class="pulsedot"></span>Admin Mode</span>
@@ -482,7 +482,7 @@ textarea.inp{resize:vertical;min-height:90px;line-height:1.5;}
   <div class="topbar">
     <div class="brand">
       <div class="brand-icon">🛡️</div>
-      <div><div class="brand-name">ESET Quiz</div></div>
+      <div><div class="brand-name">PROSPERITA Assesment</div></div>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="goTo('pgLanding')">← Kembali</button>
   </div>
@@ -1360,9 +1360,9 @@ function startGuest(){
   G.score=0; G.streak=0; G.maxStreak=0; G.correct=0; G.wrong=0; G.cur=0; G.combo=1;
   G.ll50=false; G.llSk=false; G.llFr=false; G.frozen=false; G.lastEntry=null;
 
-  const maxTime={easy:20,medium:15,hard:10};
-  const count  ={easy:8,medium:10,hard:12};
-  G.maxTime = maxTime[G.diff]||20;
+  const maxTime={easy:30,medium:30,hard:30};
+  const count  ={easy:10,medium:15,hard:20};
+  G.maxTime = maxTime[G.diff]||30;
   G.qs = shuffle(pool).slice(0, Math.min(count[G.diff]||10, pool.length));
 
   goTo('pgQuiz');
