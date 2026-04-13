@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prosperita Assessment Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#080d18;--surface:#0d1525;--card:#111e33;--card2:#162238;--eset:#1b9fe0;--eset2:#0d7dbf;--eset3:#095e96;--glow:rgba(27,159,224,0.22);--green:#10d9a0;--red:#f43f5e;--yellow:#fbbf24;--orange:#fb923c;--purple:#a78bfa;--border:rgba(27,159,224,0.14);--border2:rgba(27,159,224,0.32);--text:#ddeeff;--text2:#8bacc8;--muted:rgba(139,172,200,0.45);--mono:'DM Mono',monospace;--head:'Syne',sans-serif;--body:'DM Sans',sans-serif;--r:8px;--r2:12px;}
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}button{cursor:pointer;font-family:inherit;}input,textarea,select{font-family:inherit;}a{color:var(--eset);text-decoration:none;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 5% 5%,rgba(27,159,224,.07) 0%,transparent 60%),radial-gradient(ellipse 50% 70% at 95% 90%,rgba(16,217,160,.04) 0%,transparent 60%);}
+.hex-bg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='104'%3E%3Cpath d='M30 2l28 16v32L30 66 2 50V18z' fill='none' stroke='%231b9fe0' stroke-width='1'/%3E%3C/svg%3E");background-size:60px 104px;}
+#root{position:relative;z-index:1;min-height:100vh;}
+.page{display:none;min-height:100vh;}.page.active{display:flex;flex-direction:column;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}.anim{animation:fadeUp .3s ease;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:rgba(8,13,24,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);position:sticky;top:0;z-index:50;flex-shrink:0;}
+.brand{display:flex;align-items:center;gap:10px;}.brand-icon{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--eset),var(--eset3));display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px var(--glow);}
+.brand-name{font-family:var(--head);font-size:16px;font-weight:800;color:var(--eset);}.brand-tag{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;line-height:1;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;border:1px solid;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.5px;}
+.chip-green{border-color:rgba(16,217,160,.4);color:var(--green);background:rgba(16,217,160,.08);}.chip-blue{border-color:var(--border2);color:var(--eset);background:rgba(27,159,224,.08);}.chip-red{border-color:rgba(244,63,94,.4);color:var(--red);background:rgba(244,63,94,.08);}.chip-yellow{border-color:rgba(251,191,36,.4);color:var(--yellow);background:rgba(251,191,36,.08);}.chip-purple{border-color:rgba(167,139,250,.4);color:var(--purple);background:rgba(167,139,250,.08);}
+.pulsedot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pd 1.4s ease infinite;}@keyframes pd{0%,100%{opacity:1;box-shadow:0 0 0 0 currentColor}60%{opacity:.6;box-shadow:0 0 0 4px transparent}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;position:relative;overflow:hidden;}.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--eset),transparent);opacity:.5;}
+.card-title{font-family:var(--head);font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.section-hd{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}.section-hd::after{content:'';flex:1;height:1px;background:var(--border);}
+.field{margin-bottom:14px;}.field label{display:block;font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.inp{width:100%;padding:10px 14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}.inp:focus{border-color:var(--eset);box-shadow:0 0 0 3px rgba(27,159,224,.1);}.inp::placeholder{color:var(--muted);}
+.inp-sm{padding:7px 11px;font-size:13px;}select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238bacc8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}textarea.inp{resize:vertical;min-height:80px;line-height:1.5;}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--r);border:1px solid transparent;font-size:14px;font-weight:600;transition:all .18s;white-space:nowrap;}
+.btn-sm{padding:7px 13px;font-size:12px;}.btn-lg{padding:14px 28px;font-size:16px;font-family:var(--head);font-weight:700;letter-spacing:.5px;}.btn-full{width:100%;justify-content:center;}
+.btn-primary{background:var(--eset);color:#fff;border-color:var(--eset);box-shadow:0 4px 18px rgba(27,159,224,.3);}.btn-primary:hover{background:var(--eset2);box-shadow:0 6px 24px rgba(27,159,224,.45);transform:translateY(-1px);}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text);}.btn-ghost:hover{border-color:var(--eset);color:var(--eset);}
+.btn-danger{background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.4);color:var(--red);}.btn-danger:hover{background:rgba(244,63,94,.2);}
+.btn-success{background:rgba(16,217,160,.1);border-color:rgba(16,217,160,.4);color:var(--green);}.btn-success:hover{background:rgba(16,217,160,.2);}
+.btn-warn{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.35);color:var(--yellow);}
+.tbl-wrap{overflow-x:auto;}.tbl{width:100%;border-collapse:collapse;font-size:13px;}.tbl th{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}.tbl td{padding:10px 12px;border-bottom:1px solid rgba(27,159,224,.07);vertical-align:middle;}.tbl tr:hover td{background:rgba(27,159,224,.04);}.tbl tr:last-child td{border-bottom:none;}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;}.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease;}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}.modal-title{font-family:var(--head);font-size:16px;font-weight:700;}.modal-close{background:transparent;border:none;color:var(--muted);font-size:20px;line-height:1;}.modal-close:hover{color:var(--text);}
+#toast{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast-item{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r);padding:12px 18px;font-size:13px;font-weight:500;min-width:200px;animation:toastIn .3s ease forwards;}.toast-item.success{border-color:rgba(16,217,160,.5);color:var(--green);}.toast-item.error{border-color:rgba(244,63,94,.5);color:var(--red);}.toast-item.info{border-color:var(--border2);color:var(--eset);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+/* LANDING */
+#pgLanding .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;}
+.hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--eset);margin-bottom:16px;text-transform:uppercase;}
+.hero-h1{font-family:var(--head);font-size:clamp(34px,6vw,60px);font-weight:900;line-height:1.1;margin-bottom:14px;background:linear-gradient(135deg,#fff 20%,var(--eset));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{color:var(--text2);font-size:16px;max-width:480px;line-height:1.6;margin-bottom:32px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.hero-stats{display:flex;gap:32px;margin-top:48px;flex-wrap:wrap;justify-content:center;}.hero-stat{text-align:center;}.hero-stat-n{font-family:var(--head);font-size:28px;font-weight:800;color:var(--eset);}.hero-stat-l{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:2px;}
+/* ADMIN */
+#pgAdminLogin{align-items:center;justify-content:center;min-height:100vh;}.login-box{width:100%;max-width:400px;padding:24px;}
+#pgAdmin{flex-direction:column;}.admin-layout{display:flex;flex:1;min-height:0;}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;display:flex;flex-direction:column;}
+@media(max-width:700px){.sidebar{display:none;}}
+.sidebar-menu{flex:1;}.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}.sidebar-item:hover{color:var(--text);background:rgba(27,159,224,.06);}.sidebar-item.active{color:var(--eset);background:rgba(27,159,224,.1);border-left-color:var(--eset);}.sidebar-item .icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-section{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;padding:12px 18px 4px;text-transform:uppercase;}
+.admin-content{flex:1;overflow-y:auto;padding:24px;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;margin-bottom:24px;}.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;}.stat-card-v{font-family:var(--head);font-size:28px;font-weight:800;color:var(--eset);}.stat-card-l{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:3px;text-transform:uppercase;}
+/* GUEST */
+#pgGuest{align-items:center;justify-content:center;padding:20px;}.guest-box{width:100%;max-width:480px;}
+.avatar-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:16px;}.avatar-opt{aspect-ratio:1;border-radius:10px;border:2px solid var(--border);background:rgba(255,255,255,.04);font-size:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}.avatar-opt:hover{border-color:var(--eset);}.avatar-opt.selected{border-color:var(--eset);background:rgba(27,159,224,.15);box-shadow:0 0 14px var(--glow);}
+/* QUIZ */
+#pgQuiz{flex-direction:column;}
+.quiz-top{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(8,13,24,.9);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);flex-shrink:0;}
+.quiz-brand{font-family:var(--head);font-size:13px;font-weight:700;color:var(--eset);white-space:nowrap;}
+.quiz-prog-wrap{flex:1;}.quiz-prog-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:4px;}
+.quiz-pbar{height:3px;background:rgba(27,159,224,.1);overflow:hidden;}.quiz-pfill{height:100%;background:linear-gradient(90deg,var(--eset),var(--green));transition:width .5s;}
+.quiz-chips{display:flex;gap:6px;flex-shrink:0;}
+.quiz-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}.quiz-inner{width:100%;max-width:760px;}
+.timer-row{display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:12px;}
+.tring{position:relative;width:64px;height:64px;flex-shrink:0;}.tring svg{transform:rotate(-90deg);}
+.tr-bg{fill:none;stroke:rgba(27,159,224,.1);stroke-width:4;}.tr-fg{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .4s;}
+.tr-txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:17px;font-weight:500;}
+.combo-row{font-family:var(--mono);font-size:11px;color:var(--yellow);text-align:center;height:16px;}
+.ll-row{display:flex;gap:7px;justify-content:center;}.ll-btn{padding:6px 12px;border-radius:99px;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted);font-family:var(--mono);font-size:10px;transition:all .15s;}.ll-btn:hover:not(:disabled){border-color:var(--eset);color:var(--eset);background:rgba(27,159,224,.08);}.ll-btn:disabled{opacity:.25;cursor:default;}
+.qcard{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:20px 18px;margin:12px 0;position:relative;overflow:hidden;}.qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--eset),var(--green),transparent);}
+.q-meta{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-wrap:wrap;}.q-n{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;}.qtag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;border:1px solid var(--border2);color:var(--eset);background:rgba(27,159,224,.07);text-transform:uppercase;letter-spacing:1px;}.dlvl{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;letter-spacing:1px;}
+.qtext{font-family:var(--head);font-size:clamp(15px,2.5vw,19px);font-weight:700;line-height:1.45;}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}@media(max-width:500px){.agrid{grid-template-columns:1fr;}}
+.abtn{padding:13px 12px;border-radius:var(--r);border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:13px;font-weight:500;text-align:left;display:flex;align-items:center;gap:9px;transition:all .15s;position:relative;overflow:hidden;}.abtn:hover:not(:disabled){border-color:var(--eset);background:rgba(27,159,224,.08);transform:translateX(3px);}
+.albl{width:24px;height:24px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;background:rgba(255,255,255,.06);color:var(--muted);transition:all .15s;}.abtn:hover:not(:disabled) .albl{background:var(--eset);color:#fff;}
+.abtn.correct{border-color:var(--green)!important;background:rgba(16,217,160,.1)!important;animation:fG .5s;}.abtn.correct .albl{background:var(--green)!important;color:#fff!important;}
+.abtn.wrong{border-color:var(--red)!important;background:rgba(244,63,94,.1)!important;animation:fR .4s;}.abtn.wrong .albl{background:var(--red)!important;color:#fff!important;}
+.abtn.reveal{border-color:rgba(16,217,160,.5)!important;background:rgba(16,217,160,.05)!important;}.abtn:disabled{cursor:default;}
+@keyframes fG{50%{box-shadow:0 0 0 5px rgba(16,217,160,.25)}}@keyframes fR{50%{box-shadow:0 0 0 5px rgba(244,63,94,.25)}}
+/* MATCHING */
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}@media(max-width:520px){.match-wrap{grid-template-columns:1fr;}}
+.match-left,.match-right{display:flex;flex-direction:column;gap:8px;}
+.match-item-l{padding:10px 14px;border-radius:var(--r);border:1px solid var(--border);background:var(--card2);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;min-height:46px;}
+.match-lbl{width:22px;height:22px;border-radius:4px;background:var(--eset);color:#fff;font-family:var(--mono);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.match-sel{width:100%;padding:10px 14px;border-radius:var(--r);border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:13px;min-height:46px;cursor:pointer;}.match-sel:focus{border-color:var(--eset);outline:none;}.match-sel option{background:var(--card);}
+.match-sel.ok{border-color:var(--green);background:rgba(16,217,160,.08);}.match-sel.ng{border-color:var(--red);background:rgba(244,63,94,.08);}
+/* FEEDBACK */
+.fb-overlay{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.fb-box{padding:18px 36px;border-radius:var(--r2);border:1px solid;font-family:var(--head);font-size:20px;font-weight:800;text-align:center;backdrop-filter:blur(16px);transform:scale(0);transition:transform .25s cubic-bezier(.34,1.56,.64,1);min-width:220px;}.fb-box.show{transform:scale(1);}
+.fb-box.correct{background:rgba(16,217,160,.15);border-color:var(--green);color:var(--green);box-shadow:0 0 32px rgba(16,217,160,.3);}.fb-box.wrong{background:rgba(244,63,94,.15);border-color:var(--red);color:var(--red);box-shadow:0 0 32px rgba(244,63,94,.3);}.fb-box.timeout{background:rgba(251,191,36,.12);border-color:var(--yellow);color:var(--yellow);}
+.fb-sub{font-size:12px;font-family:var(--mono);opacity:.75;margin-top:4px;font-weight:400;}
+.float-pt{position:fixed;font-family:var(--mono);font-size:17px;color:var(--eset);pointer-events:none;z-index:150;animation:floatUp .9s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+.chain-toast{position:fixed;top:16px;right:16px;z-index:300;background:rgba(16,217,160,.12);border:1px solid rgba(16,217,160,.4);color:var(--green);border-radius:var(--r);padding:9px 16px;font-family:var(--mono);font-size:11px;animation:tIn .3s ease,tOut .4s 1.8s forwards;}
+@keyframes tIn{from{transform:translateX(110%)}to{transform:translateX(0)}}@keyframes tOut{to{opacity:0;transform:translateX(110%)}}
+/* RESULT */
+#pgResult{align-items:center;justify-content:flex-start;padding:16px;}.result-wrap{width:100%;max-width:760px;margin:0 auto;}
+.result-hero{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:28px;text-align:center;margin-bottom:14px;position:relative;overflow:hidden;}.result-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--eset),var(--green));}
+.res-avatar{font-size:52px;display:block;animation:bIn .5s;}@keyframes bIn{0%{transform:scale(.3)}70%{transform:scale(1.1)}100%{transform:scale(1)}}
+.res-name{font-family:var(--head);font-size:clamp(18px,4vw,28px);font-weight:800;margin:6px 0 2px;}
+.res-score{font-family:var(--mono);font-size:clamp(44px,9vw,68px);color:var(--eset);line-height:1;text-shadow:0 0 24px rgba(27,159,224,.4);}
+.res-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:3px;margin-top:4px;}
+.res-level{display:inline-block;padding:5px 16px;border-radius:99px;font-family:var(--mono);font-size:11px;border:1px solid;margin-top:10px;letter-spacing:2px;}
+.res-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}@media(max-width:440px){.res-stats{grid-template-columns:repeat(2,1fr);}}
+.res-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center;}.res-stat-v{font-family:var(--mono);font-size:20px;color:var(--eset);}.res-stat-l{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.lb-row-r{display:grid;grid-template-columns:32px 1fr auto auto;align-items:center;gap:8px;padding:9px 10px;border-radius:6px;margin-bottom:3px;transition:background .15s;}.lb-row-r:hover{background:var(--card2);}
+.lb-row-r.gold{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.18);}.lb-row-r.silver{background:rgba(180,200,240,.04);border:1px solid rgba(180,200,240,.12);}.lb-row-r.bronze{background:rgba(251,146,60,.05);border:1px solid rgba(251,146,60,.15);}.lb-row-r.you{background:rgba(27,159,224,.08);border:1px solid rgba(27,159,224,.28);}
+.lb-pos{font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted);}.lb-info{display:flex;align-items:center;gap:7px;}.lb-avatar{font-size:16px;}.lb-pname{font-weight:600;font-size:13px;}.lb-role-chip{font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:3px;border:1px solid;margin-left:4px;}.lb-acc{font-family:var(--mono);font-size:10px;color:var(--muted);}.lb-pts{font-family:var(--mono);font-size:13px;color:var(--eset);}
+</style></head><body>
+<div class="hex-bg"></div>
+<div id="root">
+<!-- LANDING -->
+<div class="page active anim" id="pgLanding">
+  <div class="topbar">
+    <div class="brand"><div class="brand-icon">🛡️</div><div><div class="brand-name">PROSPERITA</div><div class="brand-tag">ASSESSMENT PLATFORM</div></div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="goTo('pgAdminLogin')">🔐 Admin</button>
+      <button class="btn btn-primary btn-sm" onclick="goTo('pgGuest')">▶ Start Quiz</button>
+    </div>
+  </div>
+  <div class="hero">
+    <div class="hero-eyebrow">Prosperita Knowledge Challenge</div>
+    <h1 class="hero-h1">Test Your Knowledge<br>&amp; Expertise</h1>
+    <p class="hero-sub">Interactive assessment platform for IT teams — Security Management, IT Operations, and Security Operations Center</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary btn-lg" onclick="goTo('pgGuest')">▶ Start Quiz</button>
+      <button class="btn btn-ghost btn-lg" onclick="goTo('pgAdminLogin')">🔐 Admin Panel</button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-n" id="statTotalQ">0</div><div class="hero-stat-l">Total Questions</div></div>
+      <div class="hero-stat"><div class="hero-stat-n" id="statPlayers">0</div><div class="hero-stat-l">Participants</div></div>
+      <div class="hero-stat"><div class="hero-stat-n" id="statSessions">0</div><div class="hero-stat-l">Quiz Sessions</div></div>
+    </div>
+  </div>
+</div>
+<!-- ADMIN LOGIN -->
+<div class="page" id="pgAdminLogin" style="align-items:center;justify-content:center;">
+  <div class="login-box anim">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:40px;margin-bottom:8px;">🔐</div>
+      <div style="font-family:var(--head);font-size:22px;font-weight:800;">Admin Panel</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px;">PROSPERITA ASSESSMENT PLATFORM</div>
+    </div>
+    <div class="card">
+      <div class="field"><label>Username</label><input class="inp" id="adminUser" placeholder="admin" type="text"/></div>
+      <div class="field"><label>Password</label><input class="inp" id="adminPass" placeholder="••••••••" type="password" onkeydown="if(event.key==='Enter')adminLogin()"/></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="adminLogin()">Sign In</button>
+    </div>
+    <div style="text-align:center;margin-top:14px;"><button class="btn btn-ghost btn-sm" onclick="goTo('pgLanding')">← Back</button></div>
+  </div>
+</div>
+<!-- ADMIN DASHBOARD -->
+<div class="page" id="pgAdmin">
+  <div class="topbar">
+    <div class="brand"><div class="brand-icon">🛡️</div><div><div class="brand-name">PROSPERITA</div><div class="brand-tag">ADMIN PANEL</div></div></div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="adminChip" class="chip chip-green"><span class="pulsedot"></span>Admin</span>
+      <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="admin-layout">
+    <div class="sidebar">
+      <div class="sidebar-menu">
+        <div class="sidebar-section">Overview</div>
+        <div class="sidebar-item active" data-panel="overview" onclick="switchPanel(this)"><span class="icon">📊</span>Dashboard</div>
+        <div class="sidebar-item" data-panel="results" onclick="switchPanel(this)"><span class="icon">📋</span>Quiz Results</div>
+        <div class="sidebar-item" data-panel="leaderboard" onclick="switchPanel(this)"><span class="icon">🏆</span>Leaderboard</div>
+        <div class="sidebar-section">Content</div>
+        <div class="sidebar-item" data-panel="sharing" onclick="switchPanel(this)"><span class="icon">🔗</span>Quiz Sharing</div>
+        <div class="sidebar-item" data-panel="modules" onclick="switchPanel(this)"><span class="icon">📚</span>Modules</div>
+        <div class="sidebar-item" data-panel="questions" onclick="switchPanel(this)"><span class="icon">❓</span>Question Bank</div>
+        <div class="sidebar-section">System</div>
+        <div class="sidebar-item" data-panel="users" onclick="switchPanel(this)"><span class="icon">👥</span>Admin Accounts</div>
+        <div class="sidebar-item" data-panel="settings" onclick="switchPanel(this)"><span class="icon">⚙️</span>Settings</div>
+        <div class="sidebar-item" data-panel="export" onclick="switchPanel(this)"><span class="icon">📤</span>Export Data</div>
+      </div>
+      <div style="padding:12px 18px;border-top:1px solid var(--border);">
+        <button class="btn btn-ghost btn-sm btn-full" onclick="goTo('pgLanding')">← Home</button>
+      </div>
+    </div>
+    <div class="admin-content" id="adminContent"></div>
+  </div>
+</div>
+<!-- GUEST FLOW -->
+<div class="page" id="pgGuest">
+  <div class="topbar">
+    <div class="brand"><div class="brand-icon">🛡️</div><div><div class="brand-name">PROSPERITA Assessment</div></div></div>
+    <button class="btn btn-ghost btn-sm" onclick="goTo('pgLanding')">← Back</button>
+  </div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="guest-box anim">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-family:var(--head);font-size:22px;font-weight:800;">Welcome!</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px;">Enter the quiz code provided by your admin to begin</div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="section-hd">Quiz Code / URL</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input class="inp" id="quizCode" placeholder="Example: ESET-2024 or paste full URL..." style="font-family:var(--mono);flex:1;"/>
+          <button class="btn btn-primary btn-sm" onclick="loadQuizCode()">Load</button>
+        </div>
+        <div id="codeStatus" style="font-family:var(--mono);font-size:11px;color:var(--muted);min-height:16px;"></div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="section-hd">Your Name</div>
+        <input class="inp" id="guestName" placeholder="Enter your name..." maxlength="24" style="margin-bottom:14px;"/>
+        <div class="section-hd">Choose Avatar</div>
+        <div class="avatar-grid" id="avatarGrid"></div>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="startGuest()">▶ Start Quiz</button>
+    </div>
+  </div>
+</div>
+<!-- QUIZ -->
+<div class="page" id="pgQuiz">
+  <div class="quiz-top">
+    <div class="quiz-brand">🛡️ PROSPERITA</div>
+    <div class="quiz-prog-wrap">
+      <div class="quiz-prog-meta"><span id="qProgMeta">Q1/10</span><span id="qModMeta">MODULE</span></div>
+      <div class="quiz-pbar"><div class="quiz-pfill" id="qProgFill" style="width:0%"></div></div>
+    </div>
+    <div class="quiz-chips">
+      <span class="chip chip-blue">⬡ <span id="qScore">0</span></span>
+      <span class="chip chip-green">🔗 <span id="qStreak">0</span></span>
+    </div>
+  </div>
+  <div class="quiz-body">
+    <div class="quiz-inner">
+      <div class="timer-row">
+        <div class="tring">
+          <svg viewBox="0 0 64 64" width="64" height="64">
+            <circle class="tr-bg" cx="32" cy="32" r="27"/>
+            <circle class="tr-fg" id="trFg" cx="32" cy="32" r="27" stroke-dasharray="169.6" stroke-dashoffset="0" stroke="var(--eset)"/>
+          </svg>
+          <div class="tr-txt" id="trTxt">30</div>
+        </div>
+        <div>
+          <div class="combo-row" id="comboRow"></div>
+          <div class="ll-row" style="margin-top:6px;">
+            <button class="ll-btn" id="ll5050">✂ 50:50</button>
+            <button class="ll-btn" id="llSkip">↷ Skip</button>
+            <button class="ll-btn" id="llFreeze">❄ Freeze</button>
+          </div>
+        </div>
+      </div>
+      <div class="qcard">
+        <div class="q-meta">
+          <span class="q-n" id="qNumLbl">Q-001</span>
+          <span class="qtag" id="qTagLbl">TAG</span>
+          <span class="dlvl" id="qDiffLbl">LVL</span>
+          <span class="qtag" id="qTypeLbl" style="background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.4);color:var(--purple);display:none;">MATCHING</span>
+        </div>
+        <div class="qtext" id="qTextEl">Loading...</div>
+      </div>
+      <div id="ansWrap"></div>
+    </div>
+  </div>
+</div>
+<!-- RESULT -->
+<div class="page" id="pgResult">
+  <div class="topbar">
+    <div class="brand"><div class="brand-icon">🛡️</div><div><div class="brand-name">PROSPERITA</div><div class="brand-tag">QUIZ RESULTS</div></div></div>
+    <span class="chip chip-green"><span class="pulsedot"></span>Saved</span>
+  </div>
+  <div class="result-wrap" style="padding:16px;">
+    <div class="result-hero">
+      <span class="res-avatar" id="resAvatar">🛡️</span>
+      <div class="res-name" id="resName">Player</div>
+      <div class="res-score" id="resScore">0</div>
+      <div class="res-sub">TOTAL SCORE</div>
+      <div class="res-level" id="resDifficulty">JUNIOR</div>
+    </div>
+    <div class="res-stats">
+      <div class="res-stat"><div class="res-stat-v" id="rsCorrect">0</div><div class="res-stat-l">Correct</div></div>
+      <div class="res-stat"><div class="res-stat-v" id="rsWrong" style="color:var(--red)">0</div><div class="res-stat-l">Wrong</div></div>
+      <div class="res-stat"><div class="res-stat-v" id="rsStreak">0</div><div class="res-stat-l">Max Chain</div></div>
+      <div class="res-stat"><div class="res-stat-v" id="rsAcc">0%</div><div class="res-stat-l">Accuracy</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-title">🏆 Leaderboard <button class="btn btn-ghost btn-sm" style="margin-left:auto;font-size:11px;" onclick="refreshResLb()">⟳ Refresh</button></div>
+      <div id="resLbWrap"><div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:12px;">Memuat...</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <button class="btn btn-primary" onclick="replayQuiz()">🔄 Play Again</button>
+      <button class="btn btn-ghost" onclick="goTo('pgLanding')">🏠 Home</button>
+    </div>
+  </div>
+</div>
+<div class="fb-overlay"><div class="fb-box" id="fbBox"><div id="fbMsg">Correct!</div><div class="fb-sub" id="fbSub">+100</div></div></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal"><div class="modal-hd"><div class="modal-title" id="modalTitle">Modal</div><button class="modal-close" onclick="closeModal()">✕</button></div><div id="modalBody"></div></div>
+</div>
+<div id="toast"></div>
+<script>
+'use strict';
+// ═══ FIREBASE CONFIG — replace with your project config ═══
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let fbDB = null;
+(function(){
+  try {
+    if (FIREBASE_CONFIG.databaseURL.includes('YOUR_PROJECT')) return;
+    firebase.initializeApp(FIREBASE_CONFIG);
+    fbDB = firebase.database();
+    console.log('[Firebase] Connected');
+  } catch(e) { console.warn('[Firebase] Not configured'); }
+})();
+
+// ═══ STORAGE ═══
+const SK = {lb:'paq_lb2',results:'paq_res2',settings:'paq_cfg2',modules:'paq_mod2',questions:'paq_q2',users:'paq_usr2',shares:'paq_sh2'};
+const DB = {
+  async get(k){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;} },
+  async set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch{} },
+  async fbGet(p){ if(!fbDB)return null; try{const s=await fbDB.ref(p).get();return s.exists()?s.val():null;}catch{return null;} },
+  async fbSet(p,v){ if(!fbDB)return false; try{await fbDB.ref(p).set(v);return true;}catch{return false;} },
+  async fbPush(p,v){ if(!fbDB)return null; try{const r=await fbDB.ref(p).push(v);return r.key;}catch{return null;} },
+};
+
+// ═══ CONSTANTS ═══
+const AVATARS=['🧑‍💻','👨‍💼','👩‍💼','🕵️','👨‍🔬','👩‍🔬','🦊','🐺','🦅','🐉','⚡','🛡️'];
+const DIFF_LABELS={easy:'Junior',medium:'Senior',hard:'Expert'};
+const DIFF_COL={easy:'var(--green)',medium:'var(--yellow)',hard:'var(--red)'};
+
+// ═══ BUILT-IN DATA ═══
+const BUILTIN_MODULES=[
+  {id:'secmgmt',name:'Security Management',icon:'📊',desc:'Policy enforcement, governance, RBAC, notifications & reporting',color:'#a78bfa',enabled:true},
+  {id:'itops',name:'IT Operations',icon:'⚙️',desc:'Deployment, automation, maintenance & system health',color:'#10d9a0',enabled:true},
+  {id:'soc',name:'Security Operations',icon:'🖥️',desc:'Detection, response, investigation & threat hunting (SecOps)',color:'#f43f5e',enabled:true},
+];
+const BUILTIN_Q=[
+  {id:'sm01',mod:'secmgmt',tag:'POLICY',d:'easy',type:'mcq',q:'How are Policies used in ESET PROTECT?',opts:['They enforce specific security settings (e.g., blocking web categories) on computers or groups','They automatically install endpoint products on unmanaged devices','They send email alerts when a threat is detected','They provide hardware inventory for all managed endpoints'],a:0},
+  {id:'sm02',mod:'secmgmt',tag:'GROUPS',d:'easy',type:'mcq',q:'What is the key difference between a Static Group and a Dynamic Group?',opts:['Static Groups are manual folders; Dynamic Groups sort computers automatically based on conditions','Static Groups use AD sync; Dynamic Groups require manual assignment','Dynamic Groups are read-only; Static Groups allow policy assignment','There is no difference — both organize devices the same way'],a:0},
+  {id:'sm03',mod:'secmgmt',tag:'POLICY',d:'easy',type:'mcq',q:'Can a user on a client machine overwrite an ESET PROTECT policy?',opts:['No, unless the administrator explicitly enables Override mode','Yes, any local administrator can always overwrite any policy','Yes, but only for antivirus-related settings','No, policies can never be changed under any circumstances'],a:0},
+  {id:'sm04',mod:'secmgmt',tag:'DASHBOARD',d:'easy',type:'mcq',q:'What is the purpose of a Dashboard in ESET PROTECT?',opts:['To provide real-time, interactive visual widgets for immediate monitoring of security status','To store quarantined files from all endpoints','To deploy agents to unmanaged computers automatically','To schedule automatic report deliveries to management'],a:0},
+  {id:'sm05',mod:'secmgmt',tag:'REPORTING',d:'easy',type:'mcq',q:'How do you generate a list of all installed software on a specific computer?',opts:['Go to Computer Details → Installed Applications, or run a Report Template','Run an On-Demand Scan and check the scan log output','Check the Threat Log filtered by that computer\'s name','Use the Device Control section in the policy settings'],a:0},
+  {id:'sm06',mod:'secmgmt',tag:'RBAC',d:'easy',type:'mcq',q:'What is the main benefit of Role-Based Access Control (RBAC) in ESET PROTECT?',opts:['Admins only see and modify objects they are permitted to, enhancing internal security','All administrators share a single login for operational efficiency','The system automatically assigns the highest privilege to the most active user','It replaces the need for policies by managing access at the OS level'],a:0},
+  {id:'sm07',mod:'secmgmt',tag:'POLICY',d:'medium',type:'mcq',q:'What happens when multiple policies are applied to a single computer?',opts:['Policies are merged; the one closest to the computer usually takes precedence unless flags are used','Only the first policy applied is active; all others are ignored','The most recently created policy always overrides all others','Multiple policies cannot be applied to a single computer simultaneously'],a:0},
+  {id:'sm08',mod:'secmgmt',tag:'RBAC',d:'medium',type:'mcq',q:'What permission is required to assign a policy to a target group or computer?',opts:['"Use" permission for both the Policy and the target Group/Computer','"Write" permission for the Policy object only','"Read" permission for the target Group and "Execute" for the Policy','"Administrator" role is always required regardless of permissions'],a:0},
+  {id:'sm09',mod:'secmgmt',tag:'REPORTING',d:'medium',type:'mcq',q:'How do you schedule a Report to be sent to management automatically?',opts:['Create a "Schedule Report" Server Task and configure the Delivery tab with email addresses','Set up a Notification with email and attach the report template','Configure a Client Task on the management server to email reports','Use the Dashboard export feature and set a daily email schedule'],a:0},
+  {id:'sm10',mod:'secmgmt',tag:'NOTIFICATIONS',d:'medium',type:'mcq',q:'What is the "Aggregation" setting in a Notification?',opts:['It groups multiple similar events into one email to prevent notification fatigue','It increases the severity level of all notifications automatically','It forwards all notifications to a secondary SMTP server','It archives notifications in the database for audit purposes'],a:0},
+  {id:'sm11',mod:'secmgmt',tag:'NOTIFICATIONS',d:'hard',type:'mcq',q:'What is the "Advanced Filtering" feature in ESET PROTECT Notifications?',opts:['It uses logical conditions (AND/OR) to alert only if specific criteria are met — e.g., threat on Server AND not cleaned','It filters out low-severity events and only stores critical alerts','It automatically applies exclusions when the same threat is detected twice','It sends notifications only during business hours using a time-based filter'],a:0},
+  {id:'sm12',mod:'secmgmt',tag:'CERTIFICATES',d:'hard',type:'mcq',q:'Why must you password-protect the exported Peer Certificate and CA?',opts:['They are critical for server identity; without them, you cannot migrate or connect new components','Password protection is optional but recommended for compliance','They are only required for cloud deployments and not on-premises','Password protection prevents agents from auto-updating their certificates'],a:0},
+  {id:'sm13',mod:'secmgmt',tag:'SIEM',d:'hard',type:'mcq',q:'Can you export ESET PROTECT logs to a SIEM solution?',opts:['Yes, by configuring Syslog Export in Server Settings using LEEF or CEF formats','No, ESET PROTECT does not support SIEM integration natively','Yes, but only via a third-party plugin from the ESET marketplace','Yes, by installing a SIEM Agent on each endpoint separately'],a:0},
+  {id:'sm14',mod:'secmgmt',tag:'NOTIFICATIONS',d:'hard',type:'mcq',q:'How do you send ESET PROTECT notifications to Microsoft Teams or Slack?',opts:['By using a WebHook in the Notification settings to send JSON-formatted alerts','By installing the ESET Teams Connector from the Microsoft Store','By configuring an SMTP relay through the Teams or Slack mail gateway','Teams and Slack integrations are only available in ESET PROTECT Cloud'],a:0},
+  {id:'sm_m1',mod:'secmgmt',tag:'GROUPS',d:'easy',type:'match',q:'Match each ESET PROTECT group and policy concept with its correct description:',pairs:[{left:'Static Group',right:'Manual folder for organizing devices by admin assignment'},{left:'Dynamic Group',right:'Auto-sorts devices based on conditions like OS version or software'},{left:'Policy',right:'Enforces security settings on computers or assigned groups'},{left:'Dashboard',right:'Provides real-time visual widgets for monitoring security status'}]},
+  {id:'sm_m2',mod:'secmgmt',tag:'NOTIFICATIONS',d:'medium',type:'match',q:'Match each ESET PROTECT notification and reporting concept with its definition:',pairs:[{left:'Aggregation',right:'Groups similar events into one email to reduce alert noise'},{left:'WebHook',right:'Sends JSON-formatted alerts to platforms like Teams or Slack'},{left:'Schedule Report Task',right:'Automatically emails reports to management on a set schedule'},{left:'Advanced Filtering',right:'Uses AND/OR logic to trigger alerts only on specific conditions'}]},
+  {id:'sm_m3',mod:'secmgmt',tag:'RBAC',d:'hard',type:'match',q:'Match each RBAC and access control concept with its correct behavior:',pairs:[{left:'Reviewer',right:'Read-only access to monitor status, reports, and detections'},{left:'Co-manager',right:'Write permissions to modify settings within assigned scope'},{left:'Override Mode',right:'Allows a local user to temporarily change a locked policy setting'},{left:'Static Group Synchronization',right:'Mirrors group structure automatically from Active Directory or LDAP'}]},
+  {id:'sm_m4',mod:'secmgmt',tag:'POLICY',d:'medium',type:'match',q:'Match each Policy-related concept with its correct behavior in ESET PROTECT:',pairs:[{left:'Policy Merge',right:'Settings combine when multiple policies apply — closest to computer takes precedence'},{left:'Policy Flag',right:'Marks a setting to take absolute precedence over all inherited policies'},{left:'Peer Certificate',right:'Critical for server identity and required for migration or new component connections'},{left:'Two-Factor Authentication',right:'Requires a security code from an app or SMS before admin console access'}]},
+  {id:'sm_m5',mod:'secmgmt',tag:'SIEM',d:'hard',type:'match',q:'Match each ESET PROTECT integration or export feature with its purpose:',pairs:[{left:'Syslog Export',right:'Sends logs to a SIEM using LEEF or CEF format via Server Settings'},{left:'RBAC',right:'Limits what each admin can see and modify based on assigned permissions'},{left:'Audit Log',right:'Tracks every admin action in the console for compliance and accountability'},{left:'2FA Requirement',right:'Adds a mandatory second factor before admin can access the Web Console'}]},
+  {id:'io01',mod:'itops',tag:'AGENT',d:'easy',type:'mcq',q:'What is the primary function of the ESET Management Agent?',opts:['It facilitates communication, executes commands, and stores security scenarios locally','It acts as the antivirus engine scanning files in real time on the endpoint','It provides a web interface for administrators to manage endpoints remotely','It forwards threat logs directly to the cloud without any local storage'],a:0},
+  {id:'io02',mod:'itops',tag:'DEPLOYMENT',d:'easy',type:'mcq',q:'What is a Live Installer in ESET PROTECT?',opts:['A small package with the Agent and security product for easy deployment and cloud connection','A full installer that includes the ESET PROTECT Server and its database','A bootable USB image used to deploy endpoints without network access','A cloud-only installer that does not work in on-premises environments'],a:0},
+  {id:'io03',mod:'itops',tag:'PORTS',d:'easy',type:'mcq',q:'Which port must be open for the Agent to communicate with ESET PROTECT Cloud?',opts:['Port 443 (HTTPS)','Port 2222 (ESET proprietary protocol)','Port 8080 (HTTP proxy)','Port 3389 (Remote Desktop Protocol)'],a:0},
+  {id:'io04',mod:'itops',tag:'DEPLOYMENT',d:'easy',type:'mcq',q:'Which of the following is NOT a valid method to deploy the ESET Management Agent?',opts:['Bluetooth push from a mobile management device','Live Installer link from the ESET PROTECT console','GPO or SCCM script-based deployment','Server Task targeting unmanaged computers'],a:0},
+  {id:'io05',mod:'itops',tag:'DEPLOYMENT',d:'easy',type:'mcq',q:'What does the "All-in-one" installer include?',opts:['A single sequence installing the Server, Web Console, Proxy, and RD Sensor on-premises','Only the ESET endpoint security product without server components','The Agent and antivirus without the management server','A cloud-hosted installer that requires no local components'],a:0},
+  {id:'io06',mod:'itops',tag:'INVENTORY',d:'easy',type:'mcq',q:'What information does the Asset Inventory feature provide?',opts:['Hardware details (CPU/RAM) and installed software inventory for managed devices','Only a list of detected threats for each endpoint','Network topology and firewall rule analysis across the environment','License usage and seat allocation across the organization'],a:0},
+  {id:'io07',mod:'itops',tag:'TASKS',d:'medium',type:'mcq',q:'What is the difference between a Client Task and a Server Task?',opts:['Client Tasks run on the endpoint (e.g., scan); Server Tasks run on the server (e.g., reports)','Client Tasks are created by end users; Server Tasks are created by admins only','Server Tasks require manual approval; Client Tasks execute automatically','There is no difference — both task types execute on the endpoint'],a:0},
+  {id:'io08',mod:'itops',tag:'TASKS',d:'medium',type:'mcq',q:'What is a Trigger in the context of ESET PROTECT tasks?',opts:['It defines when a task runs — e.g., "Scheduled" or "Upon Joining Dynamic Group"','It is the threshold value that activates a security notification','It is the rule that determines which policy takes precedence over another','It refers to the initial threat event that starts an incident investigation'],a:0},
+  {id:'io09',mod:'itops',tag:'PROXY',d:'medium',type:'mcq',q:'What role does the Apache HTTP Proxy play in an ESET PROTECT deployment?',opts:['It caches updates and installers locally to save bandwidth and speed up deployments','It acts as a firewall between endpoints and the ESET cloud servers','It handles all email notifications generated by threat alerts','It provides an alternative web GUI to the main ESET PROTECT console'],a:0},
+  {id:'io10',mod:'itops',tag:'TROUBLESHOOT',d:'medium',type:'mcq',q:'What is the status.html file used for in ESET PROTECT?',opts:['A local file on the client to troubleshoot why an Agent is not connecting to the Server','A dashboard summary page exported from the ESET PROTECT Web Console','A report file automatically generated after each endpoint scan','A configuration template used during bulk Agent deployment'],a:0},
+  {id:'io11',mod:'itops',tag:'AUTOMATION',d:'medium',type:'mcq',q:'How do you automate the removal of "ghost" (inactive) computers in ESET PROTECT?',opts:['Use a "Delete Not Connecting Computers" Server Task with an inactivity threshold (e.g., 30 days)','Create a Client Task that uninstalls the Agent after 30 days of inactivity automatically','Configure a Dynamic Group to hide offline computers from the console view','Manually identify and delete each ghost computer from the Static Group weekly'],a:0},
+  {id:'io12',mod:'itops',tag:'MIGRATION',d:'hard',type:'mcq',q:'How do you migrate the ESET PROTECT Server to new hardware?',opts:['Export the CA, backup the database, install the new server, and re-point agents via Policy','Simply copy the installation folder to the new server and restart all services','Use the Live Installer on the new hardware — it auto-imports existing configuration data','Re-deploy all agents from scratch; there is no official migration path for the server'],a:0},
+  {id:'io13',mod:'itops',tag:'ROGUE',d:'hard',type:'mcq',q:'What is the purpose of the Rogue Detection (RD) Sensor?',opts:['It listens for unmanaged computers on the network and reports them to the console','It detects rogue Wi-Fi access points broadcasting within the corporate network','It scans for malware on devices that do not have the ESET agent installed','It monitors for unauthorized changes to ESET policy configurations'],a:0},
+  {id:'io14',mod:'itops',tag:'CLONING',d:'hard',type:'mcq',q:'What is the "Reset Cloned Agent" task used for?',opts:['It resets the unique ID of a cloned VM so the console does not treat clones as one machine','It reinstalls the Agent on all endpoints that share a cloned disk image','It resets the Agent communication certificate to fix authentication errors','It removes duplicate policy assignments caused by VM snapshots or clones'],a:0},
+  {id:'io15',mod:'itops',tag:'DATABASE',d:'hard',type:'mcq',q:'What is the function of the ESET PROTECT Database Repair Tool?',opts:['It fixes corruption or inconsistencies in the SQL database to allow the server service to start','It migrates data from MySQL to Microsoft SQL Server automatically','It compresses old log data to reclaim database storage space','It repairs broken network connections between the server and the database host'],a:0},
+  {id:'io_m1',mod:'itops',tag:'DEPLOYMENT',d:'easy',type:'match',q:'Match each ESET PROTECT deployment method with its correct description:',pairs:[{left:'Live Installer',right:'Small package with Agent + product for easy cloud-connected deployment'},{left:'All-in-one Installer',right:'Installs Server, Web Console, Proxy, and RD Sensor in one sequence'},{left:'GPO/SCCM',right:'Deploys Agent silently across domain computers via group policy scripts'},{left:'Server Task (Agent Deployment)',right:'Pushes Agent installation to target computers directly from the console'}]},
+  {id:'io_m2',mod:'itops',tag:'TASKS',d:'medium',type:'match',q:'Match each ESET PROTECT task and trigger concept with its correct definition:',pairs:[{left:'Client Task',right:'Runs on the endpoint — e.g., On-Demand Scan or software install'},{left:'Server Task',right:'Runs on the server — e.g., report generation or database maintenance'},{left:'Trigger',right:'Defines when a task executes — Scheduled or upon Dynamic Group join'},{left:'Apache HTTP Proxy',right:'Caches updates locally to reduce bandwidth usage at remote offices'}]},
+  {id:'io_m3',mod:'itops',tag:'TROUBLESHOOT',d:'medium',type:'match',q:'Match each ESET PROTECT troubleshooting tool with its purpose:',pairs:[{left:'status.html',right:'Local diagnostic file showing why an Agent cannot connect to the Server'},{left:'Log Collector',right:'Gathers all logs into a .zip archive for ESET Technical Support analysis'},{left:'Database Repair Tool',right:'Fixes SQL database corruption so the server service can restart'},{left:'RD Sensor',right:'Detects and reports unmanaged devices found on the local network'}]},
+  {id:'io_m4',mod:'itops',tag:'AUTOMATION',d:'hard',type:'match',q:'Match each ESET PROTECT automation scenario with its correct solution:',pairs:[{left:'Remove inactive ghost computers',right:'"Delete Not Connecting Computers" Server Task with an inactivity threshold'},{left:'Auto-upgrade outdated endpoints',right:'Software Install Client Task targeting the Outdated Applications Dynamic Group'},{left:'Deploy Agent to low-bandwidth office',right:'Use Mirror Tool or HTTP Proxy to cache and distribute packages locally'},{left:'Reset cloned VM identities',right:'Run the Reset Cloned Agent task to assign unique IDs to each VM clone'}]},
+  {id:'io_m5',mod:'itops',tag:'EXPERT',d:'hard',type:'match',q:'Match each advanced ESET PROTECT server component with its correct function:',pairs:[{left:'ESET PROTECT Virtual Appliance',right:'Pre-configured VMware/Hyper-V image for server deployment without manual OS install'},{left:'Mirror Tool',right:'Downloads updates offline for distribution to isolated or air-gapped endpoints'},{left:'Reset Cloned Agent Task',right:'Assigns a new unique identity to cloned VMs to prevent console conflicts'},{left:'OS Update Client Task',right:'Applies Windows OS patches to managed endpoints via ESET PROTECT'}]},
+  {id:'sc01',mod:'soc',tag:'QUARANTINE',d:'easy',type:'mcq',q:'What happens to a file when it is Quarantined by ESET?',opts:['It is moved to a secure, encrypted folder and isolated from the OS','It is immediately and permanently deleted from the endpoint','It is uploaded to ESET cloud for manual analysis by researchers','It is compressed and moved to the Windows Recycle Bin'],a:0},
+  {id:'sc02',mod:'soc',tag:'QUARANTINE',d:'easy',type:'mcq',q:'Can you restore a quarantined file remotely from ESET PROTECT?',opts:['Yes, via the Quarantine section in the Web Console','No, quarantined files can only be restored locally on the endpoint','Yes, but only if the file was quarantined within the past 24 hours','No, quarantined files are automatically deleted after 7 days'],a:0},
+  {id:'sc03',mod:'soc',tag:'SCAN',d:'easy',type:'mcq',q:'How do you perform a remote forced scan on specific endpoints?',opts:['Create an On-Demand Scan Client Task and target the specific endpoints','Send an email to the end user and ask them to run a manual scan','Click the Dashboard refresh button — it triggers scans automatically','Enable real-time scanner — it will perform on-demand scans automatically'],a:0},
+  {id:'sc04',mod:'soc',tag:'RESPONSE',d:'easy',type:'mcq',q:'What is the "Single-Click Action" feature in ESET PROTECT?',opts:['It allows admins to take immediate action (e.g., isolate or scan) directly from a detection notification','It automatically resolves all pending threats in the console with one click','It sends a push notification to all endpoints simultaneously','It creates a one-click report of all detections in the past 24 hours'],a:0},
+  {id:'sc05',mod:'soc',tag:'PROTECTION',d:'easy',type:'mcq',q:'How do you verify if Anti-Phishing protection is active on an endpoint?',opts:['Check the Web Access Protection status in the Computer Details page','Run a phishing simulation and check if the attempt is blocked in real time','Look for the Anti-Phishing icon visible in the Windows system tray','Review the Firewall log for blocked phishing domain connection attempts'],a:0},
+  {id:'sc06',mod:'soc',tag:'FIREWALL',d:'easy',type:'mcq',q:'What does a "Firewall Violation" log entry indicate?',opts:['A network connection was blocked based on active ESET firewall rules','The ESET firewall service has crashed and needs to be restarted','An endpoint has been isolated from the network by an admin command','A malware sample attempted to disable Windows Firewall on the device'],a:0},
+  {id:'sc07',mod:'soc',tag:'RESPONSE',d:'medium',type:'mcq',q:'What is the first recommended step when a workstation is suspected of compromise?',opts:['Initiate the Network Isolation command to prevent lateral movement','Immediately reimage the machine to restore a clean OS state','Run a full on-demand scan and wait for results before taking any action','Revoke the user\'s credentials and disable their Active Directory account'],a:0},
+  {id:'sc08',mod:'soc',tag:'RESPONSE',d:'medium',type:'mcq',q:'What does the "Kill Process" task do in ESET PROTECT?',opts:['It remotely terminates a specific malicious process by its PID or process name','It uninstalls the ESET agent from an endpoint to stop a runaway security process','It forces an endpoint reboot to clear malicious processes loaded in memory','It disables all running services on the endpoint except for the ESET agent'],a:0},
+  {id:'sc09',mod:'soc',tag:'EXCLUSIONS',d:'medium',type:'mcq',q:'How do you create an exclusion for a false positive detection in ESET PROTECT?',opts:['From the Detection log, click Create Exclusion by Path, Hash, or Detection Name','Add the file path to the Windows Defender exclusion list directly on the endpoint','Submit the file to ESET and wait for it to be cleared in the next virus DB update','Temporarily disable real-time protection and manually whitelist the file'],a:0},
+  {id:'sc10',mod:'soc',tag:'HIPS',d:'medium',type:'mcq',q:'What is HIPS and how is it managed in ESET PROTECT?',opts:['HIPS monitors OS activity via rules; managed through Policies set to Automatic or Policy-based mode','HIPS is a network appliance that inspects traffic between endpoints and the internet','HIPS scans email attachments at the gateway level before delivery to users','HIPS is a hardware security module that encrypts endpoint disk data'],a:0},
+  {id:'sc11',mod:'soc',tag:'DEVICE CONTROL',d:'medium',type:'mcq',q:'How do you control unauthorized USB device usage with ESET PROTECT?',opts:['Enable Device Control in the policy and set rules to "Block" or "Read-Only"','Install a separate third-party USB monitoring agent alongside ESET','Use a Firewall policy rule to block all USB communication ports','Review Windows Event Viewer logs manually for USB plug-in events'],a:0},
+  {id:'sc12',mod:'soc',tag:'RANSOMWARE',d:'medium',type:'mcq',q:'What is the "Ransomware Shield" in ESET products?',opts:['A HIPS extension that specifically blocks mass file encryption patterns in real time','A cloud backup system that automatically restores files after a ransomware attack','A firewall rule blocking all outbound traffic to known ransom payment sites','A decryption tool used after ransomware has already encrypted the victim files'],a:0},
+  {id:'sc13',mod:'soc',tag:'XDR',d:'medium',type:'mcq',q:'How do you use ESET LiveGrid® during a threat investigation?',opts:['Check file reputation and popularity; low popularity often indicates a targeted or novel threat','Submit the suspicious file to LiveGrid for a full sandbox analysis','Use LiveGrid to block all low-reputation files across the entire network instantly','LiveGrid only provides signature updates and cannot assist in threat investigation'],a:0},
+  {id:'sc14',mod:'soc',tag:'XDR',d:'hard',type:'mcq',q:'What is ESET LiveGuard Advanced?',opts:['A cloud-sandbox that analyzes suspicious files using AI before they execute on the endpoint','A real-time antivirus engine built directly into ESET Endpoint Security','A threat intelligence feed that provides daily IOC updates to the management console','A SIEM connector that aggregates ESET logs with third-party security tools'],a:0},
+  {id:'sc15',mod:'soc',tag:'XDR',d:'hard',type:'mcq',q:'What is the difference between a Detection and an Incident in ESET Inspect (XDR)?',opts:['A Detection is a single threat event; an Incident groups related detection events for deeper analysis','A Detection is confirmed malware; an Incident is a false positive under security review','Detections are generated by endpoints; Incidents are created manually by security analysts','There is no difference — both terms refer to the same type of event in ESET Inspect'],a:0},
+  {id:'sc16',mod:'soc',tag:'VULNERABILITY',d:'hard',type:'mcq',q:'Which ESET PROTECT dashboard shows unpatched vulnerabilities ranked by severity?',opts:['The Vulnerability & Patch Management dashboard, which ranks CVEs by severity score','The Threat Overview dashboard found under the Security Operations section','The Compliance Report section in the Export Data panel','The HIPS Event Log filtered to show entries related to unpatched software'],a:0},
+  {id:'sc17',mod:'soc',tag:'AUDIT',d:'hard',type:'mcq',q:'What is the Audit Log in ESET PROTECT used for?',opts:['It tracks every action taken by an Administrator in the console for compliance purposes','It records all file scan events generated across every managed endpoint','It stores encrypted copies of all quarantined files for forensic review','It logs all network connections that were blocked by the ESET Firewall module'],a:0},
+  {id:'sc_m1',mod:'soc',tag:'RESPONSE',d:'easy',type:'match',q:'Match each ESET security response action with its correct purpose:',pairs:[{left:'Network Isolation',right:'Prevents lateral movement by cutting off a compromised workstation from the network'},{left:'Kill Process',right:'Remotely terminates a specific malicious process by its PID or name'},{left:'On-Demand Scan Task',right:'Forces an immediate targeted scan on specific selected endpoints'},{left:'Restore and Exclude',right:'Recovers a quarantined file and adds it to the exclusion list simultaneously'}]},
+  {id:'sc_m2',mod:'soc',tag:'PROTECTION',d:'medium',type:'match',q:'Match each ESET protection module with its correct security function:',pairs:[{left:'Ransomware Shield',right:'Blocks mass file encryption patterns in real time as a HIPS extension'},{left:'HIPS',right:'Monitors OS-level activity via rules set to Automatic or Policy-based mode'},{left:'Device Control',right:'Enforces Block or Read-Only rules for USB and removable media devices'},{left:'Anti-Phishing',right:'Protects users from fraudulent and malicious websites via Web Access Protection'}]},
+  {id:'sc_m3',mod:'soc',tag:'XDR',d:'hard',type:'match',q:'Match each ESET advanced detection feature with its correct description:',pairs:[{left:'ESET LiveGuard Advanced',right:'Cloud-sandbox that analyzes suspicious files with AI before they execute'},{left:'ESET Inspect (XDR)',right:'Provides deep visibility for root cause analysis and behavioral anomaly detection'},{left:'Deep Behavioral Inspection',right:'Monitors code execution in memory at runtime to catch fileless malware'},{left:'ESET LiveGrid®',right:'Checks file reputation and popularity to identify novel or targeted threats'}]},
+  {id:'sc_m4',mod:'soc',tag:'AUDIT',d:'hard',type:'match',q:'Match each ESET PROTECT compliance and forensics feature with its purpose:',pairs:[{left:'Audit Log',right:'Records every admin action in the console for compliance and accountability'},{left:'Vulnerability Dashboard',right:'Ranks unpatched CVEs by severity across all managed endpoints'},{left:'Full Disk Encryption (EFDE)',right:'Manages encryption policies and recovery keys via the management console'},{left:'Deep Behavioral Inspection (DBI)',right:'Monitors code behavior in memory during execution to catch fileless attacks'}]},
+  {id:'sc_m5',mod:'soc',tag:'INVESTIGATION',d:'medium',type:'match',q:'Match each ESET PROTECT investigation tool with its correct use case:',pairs:[{left:'Detection Mechanism field',right:'Shows which module caught the threat — e.g., Real-time shield or Botnet protection'},{left:'IOC Search (SHA-1/MD5)',right:'Searches for a specific file hash across all endpoints in the network'},{left:'Outbreak Notification',right:'Triggers an alert when detections exceed a threshold — e.g., 10 in 5 minutes'},{left:'Audit Log',right:'Provides a compliance trail of every administrative action taken in the console'}]},
+];
+const DEFAULT_SETTINGS={title:'Prosperita Assessment',maxPerLb:30,showLbOnResult:true};
+const DEFAULT_USERS=[{id:'admin',username:'admin',password:'eset2024',role:'superadmin',name:'Administrator'}];
+
+// ═══ STATE ═══
+let CFG={},MODULES=[],QUESTIONS=[],ADMIN_USERS=[],QUIZ_SHARES={},CURRENT_ADMIN=null;
+let SELECTED_AVATAR=0, LOADED_SHARE=null;
+let G={name:'',avatar:'🧑‍💻',modId:'',diff:'easy',qs:[],cur:0,score:0,streak:0,maxStreak:0,correct:0,wrong:0,timer:null,timeLeft:0,maxTime:30,answered:false,ll50:false,llSk:false,llFr:false,frozen:false,combo:1,lastEntry:null,quizCode:null};
+
+// ═══ INIT ═══
+async function init(){
+  CFG=(await DB.get(SK.settings))||{...DEFAULT_SETTINGS};
+  MODULES=(await DB.get(SK.modules))||BUILTIN_MODULES.map(m=>({...m}));
+  QUESTIONS=(await DB.get(SK.questions))||BUILTIN_Q.map(q=>({...q}));
+  ADMIN_USERS=(await DB.get(SK.users))||DEFAULT_USERS.map(u=>({...u}));
+  QUIZ_SHARES=(await DB.get(SK.shares))||{};
+  // Auto-reconnect Firebase if config was saved
+  if(CFG.firebaseEnabled && CFG.firebaseCfg?.databaseURL){
+    try{
+      if(firebase.apps.length){for(const a of firebase.apps){try{await a.delete();}catch{}}}
+      const app=firebase.initializeApp(CFG.firebaseCfg);
+      fbDB=firebase.database(app);
+      console.log('[Firebase] Auto-connected from saved config');
+    }catch(e){console.warn('[Firebase] Auto-connect failed',e);fbDB=null;}
+  }
+  renderAvatars();
+  await updateLandingStats();
+  checkUrlParams();
+}
+
+// ═══ NAVIGATION ═══
+function goTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById(id);
+  pg.classList.add('active');pg.classList.remove('anim');void pg.offsetWidth;pg.classList.add('anim');
+  if(id==='pgAdmin') renderAdminPanel('overview');
+}
+
+// ═══ TOAST / MODAL ═══
+function toast(msg,type='info'){
+  const el=document.createElement('div');el.className=`toast-item ${type}`;el.textContent=msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>{el.style.animation='toastOut .3s ease forwards';setTimeout(()=>el.remove(),300);},2800);
+}
+function openModal(t,b){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=b;document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target.id==='modalOverlay')closeModal();});
+
+// ═══ ADMIN AUTH ═══
+function adminLogin(){
+  const u=document.getElementById('adminUser').value.trim();
+  const p=document.getElementById('adminPass').value;
+  const found=ADMIN_USERS.find(x=>x.username===u&&x.password===p);
+  if(found){CURRENT_ADMIN=found;document.getElementById('adminChip').innerHTML=`<span class="pulsedot"></span>${found.name||found.username}`;goTo('pgAdmin');}
+  else toast('Incorrect username or password','error');
+}
+function adminLogout(){CURRENT_ADMIN=null;goTo('pgLanding');}
+
+// ═══ ADMIN PANEL ROUTER ═══
+function switchPanel(el){document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));el.classList.add('active');renderAdminPanel(el.dataset.panel);}
+function renderAdminPanel(p){
+  const el=document.getElementById('adminContent');el.innerHTML='';
+  ({overview:panelOverview,results:panelResults,leaderboard:panelLeaderboard,sharing:panelSharing,modules:panelModules,questions:panelQuestions,users:panelUsers,settings:panelSettings,export:panelExport})[p]?.(el);
+}
+
+async function fbResults(){ if(fbDB){const r=await DB.fbGet('results');return r?Object.values(r):[];} return(await DB.get(SK.results))||[]; }
+async function fbLb(){ if(fbDB){const r=await DB.fbGet('leaderboard');return r?Object.values(r).sort((a,b)=>b.score-a.score):[];} return(await DB.get(SK.lb))||[]; }
+
+// ═══ PANEL: OVERVIEW ═══
+async function panelOverview(el){
+  const results=await fbResults(),lb=await fbLb();
+  el.innerHTML=`<div style="font-family:var(--head);font-size:20px;font-weight:800;margin-bottom:20px;">📊 Dashboard</div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-card-v">${results.length}</div><div class="stat-card-l">Total Sessions</div></div>
+    <div class="stat-card"><div class="stat-card-v">${new Set(results.map(r=>r.name)).size}</div><div class="stat-card-l">Participants Unik</div></div>
+    <div class="stat-card"><div class="stat-card-v">${QUESTIONS.length}</div><div class="stat-card-l">Question Bank</div></div>
+    <div class="stat-card"><div class="stat-card-v">${MODULES.filter(m=>m.enabled).length}</div><div class="stat-card-l">Active Modules</div></div>
+    <div class="stat-card"><div class="stat-card-v">${results.length?Math.round(results.reduce((a,r)=>a+(r.acc||0),0)/results.length):0}%</div><div class="stat-card-l">Rata² Accuracy</div></div>
+    <div class="stat-card"><div class="stat-card-v">${Object.keys(QUIZ_SHARES).length}</div><div class="stat-card-l">Active Codes</div></div>
+    <div class="stat-card"><div class="stat-card-v">${ADMIN_USERS.length}</div><div class="stat-card-l">Admin Accounts</div></div>
+    <div class="stat-card"><div class="stat-card-v" style="color:${fbDB?'var(--green)':'var(--muted)'}">${fbDB?'ON':'OFF'}</div><div class="stat-card-l">Firebase</div></div>
+  </div>
+  <div class="card"><div class="card-title">📅 Recent Sessions</div>
+    <div class="tbl-wrap"><table class="tbl">
+      <thead><tr><th>Name</th><th>Module</th><th>Score</th><th>Accuracy</th><th>Time</th></tr></thead>
+      <tbody>${results.slice(-8).reverse().map(r=>`<tr><td><span style="font-size:14px">${esc(r.avatar||'👤')}</span> ${esc(r.name)}</td><td>${modName(r.modId)}</td><td style="font-family:var(--mono);color:var(--eset)">${(r.score||0).toLocaleString()}</td><td>${r.acc||0}%</td><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${fmtDate(r.ts)}</td></tr>`).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// ═══ PANEL: RESULTS ═══
+async function panelResults(el){
+  const results=await fbResults();
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">📋 All Quiz Results</div>
+    <button class="btn btn-danger btn-sm" onclick="clearResults()">🗑 Clear All</button>
+  </div>
+  ${!results.length?'<div class="card" style="text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);">No quiz results yet</div>':`
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>#</th><th>Name</th><th>Module</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Accuracy</th><th>Chain</th><th>Time</th></tr></thead>
+    <tbody>${results.map((r,i)=>`<tr>
+      <td style="color:var(--muted);font-family:var(--mono);font-size:11px">${i+1}</td>
+      <td><span style="font-size:14px">${esc(r.avatar||'👤')}</span> <strong>${esc(r.name)}</strong></td>
+      <td>${modName(r.modId)}</td>
+      <td style="font-family:var(--mono);color:var(--eset)">${(r.score||0).toLocaleString()}</td>
+      <td style="color:var(--green)">${r.correct||0}</td><td style="color:var(--red)">${r.wrong||0}</td>
+      <td>${r.acc||0}%</td><td style="color:var(--yellow)">${r.maxStreak||0}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${fmtDate(r.ts)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`}`;
+}
+async function clearResults(){
+  if(!confirm('Delete all results? This cannot be undone.')) return;
+  await DB.set(SK.results,[]);await DB.set(SK.lb,[]);
+  if(fbDB){await DB.fbSet('results',null);await DB.fbSet('leaderboard',null);}
+  toast('Data cleared','info');panelResults(document.getElementById('adminContent'));
+}
+
+// ═══ PANEL: LEADERBOARD ═══
+async function panelLeaderboard(el){
+  const lb=await fbLb();const medals=['🥇','🥈','🥉'];
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">🏆 Global Leaderboard</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="renderAdminPanel('leaderboard')">⟳ Refresh</button>
+      <button class="btn btn-primary btn-sm" onclick="exportLbCSV()">⬇ CSV</button>
+      ${fbDB?`<button class="btn btn-success btn-sm" onclick="pushLbToFB()">☁ Push to Firebase</button>`:''}
+    </div>
+  </div>
+  ${!lb.length?'<div class="card" style="text-align:center;padding:40px;color:var(--muted);font-family:var(--mono);">Leaderboard is empty</div>':`
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Rank</th><th>Name</th><th>Module</th><th>Score</th><th>Accuracy</th><th>Difficulty</th></tr></thead>
+    <tbody>${lb.slice(0,30).map((e,i)=>`<tr>
+      <td style="font-family:var(--mono)">${medals[i]||('#'+(i+1))}</td>
+      <td><span style="font-size:14px">${esc(e.avatar||'👤')}</span> <strong>${esc(e.name)}</strong></td>
+      <td>${modName(e.modId)}</td>
+      <td style="font-family:var(--mono);color:var(--eset);font-weight:600">${(e.score||0).toLocaleString()}</td>
+      <td>${e.acc||0}%</td>
+      <td><span class="chip" style="border-color:${DIFF_COL[e.diff]}44;color:${DIFF_COL[e.diff]};background:${DIFF_COL[e.diff]}11;font-size:9px">${DIFF_LABELS[e.diff]||e.diff}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`}`;
+}
+async function pushLbToFB(){
+  const lb=await DB.get(SK.lb)||[];
+  if(!lb.length){toast('No local data available','info');return;}
+  const obj={};lb.forEach((e,i)=>obj[`r${String(i).padStart(4,'0')}`]=e);
+  toast(await DB.fbSet('leaderboard',obj)?'Leaderboard di-push ke Firebase':'Firebase not available','success');
+}
+
+// ═══ PANEL: SHARING ═══
+async function panelSharing(el){
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">🔗 Quiz Sharing</div>
+    <button class="btn btn-primary btn-sm" onclick="modalCreateShare()">+ Create Code</button>
+  </div>
+  <div class="card" style="margin-bottom:20px;padding:14px 18px;">
+    <div style="font-size:13px;color:var(--text2);">Create quiz codes for guest participants — codes lock the module & difficulty so participants skip the selection step. Share the code or full URL.</div>
+  </div>
+  <div style="display:grid;gap:10px;">
+    ${Object.entries(QUIZ_SHARES).map(([code,s])=>{
+      const m=MODULES.find(x=>x.id===s.modId)||{name:s.modId,icon:'📁'};
+      const cnt=QUESTIONS.filter(q=>q.mod===s.modId).length;
+      const url=`${location.origin}${location.pathname}?quiz=${code}`;
+      return `<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--eset);letter-spacing:2px">${esc(code)}</div>
+            <button class="btn btn-ghost btn-sm" style="font-size:10px" onclick="copyUrl('${esc(url)}','${esc(code)}')">📋 Copy URL</button>
+          </div>
+          <div style="font-size:12px;color:var(--muted)">${m.icon} <strong style="color:var(--text)">${esc(m.name)}</strong> · <strong style="color:${DIFF_COL[s.diff]}">${DIFF_LABELS[s.diff]}</strong> · ${cnt} questions</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:3px">${fmtDate(s.ts)} · by ${esc(s.createdBy||'admin')}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteShare('${esc(code)}')">Delete</button>
+      </div>`;
+    }).join('')}
+    ${!Object.keys(QUIZ_SHARES).length?'<div class="card" style="text-align:center;padding:30px;color:var(--muted);font-family:var(--mono);">No codes yet. Create your first one!</div>':''}
+  </div>`;
+}
+function modalCreateShare(){
+  openModal('Create Quiz Code',`
+  <div class="field"><label>Quiz Code</label><input class="inp" id="scCode" placeholder="e.g. ESET-2024" maxlength="20" style="font-family:var(--mono);letter-spacing:2px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"/></div>
+  <div class="field"><label>Module</label><select class="inp" id="scMod">${MODULES.filter(m=>m.enabled).map(m=>`<option value="${m.id}">${m.icon} ${esc(m.name)}</option>`).join('')}</select></div>
+  <div class="field"><label>Difficulty</label><select class="inp" id="scDiff"><option value="easy">🟢 Junior</option><option value="medium">🟡 Senior</option><option value="hard">🔴 Expert</option></select></div>
+  <button class="btn btn-primary btn-full" onclick="saveShare()">Create Code</button>`);
+}
+async function saveShare(){
+  const code=document.getElementById('scCode').value.trim().toUpperCase();
+  const modId=document.getElementById('scMod').value;
+  const diff=document.getElementById('scDiff').value;
+  if(!code){toast('Enter a code','error');return;}
+  if(QUIZ_SHARES[code]){toast('Code already exists','error');return;}
+  if(!QUESTIONS.filter(q=>q.mod===modId).length){toast('This module has no questions yet','error');return;}
+  QUIZ_SHARES[code]={modId,diff,createdBy:CURRENT_ADMIN?.username||'admin',ts:Date.now()};
+  await DB.set(SK.shares,QUIZ_SHARES);
+  closeModal();toast(`Kode "${code}" dibuat`,'success');renderAdminPanel('sharing');
+}
+async function deleteShare(code){
+  if(!confirm(`Delete code "${code}"?`))return;
+  delete QUIZ_SHARES[code];await DB.set(SK.shares,QUIZ_SHARES);
+  toast('Code deleted','info');renderAdminPanel('sharing');
+}
+function copyUrl(url,code){
+  navigator.clipboard?.writeText(url).then(()=>toast('URL copied!','success')).catch(()=>navigator.clipboard?.writeText(code).then(()=>toast('Code copied!','success')));
+}
+
+// ═══ PANEL: MODULES ═══
+async function panelModules(el){
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">📚 Manage Modulese</div>
+    <button class="btn btn-primary btn-sm" onclick="modalAddMod()">+ Add Modulee</button>
+  </div>
+  <div style="display:grid;gap:10px;">
+  ${MODULES.map(m=>`<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:28px">${m.icon}</div>
+    <div style="flex:1;min-width:180px;">
+      <div style="font-weight:700;font-size:15px">${esc(m.name)}</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:2px">${esc(m.desc)}</div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="chip chip-blue">${QUESTIONS.filter(q=>q.mod===m.id).length} questions</span>
+        <span class="chip ${m.enabled?'chip-green':'chip-red'}">${m.enabled?'Active':'Inactive'}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+      <button class="btn btn-warn btn-sm" onclick="toggleMod('${m.id}')">${m.enabled?'Inactivekan':'Activekan'}</button>
+      <button class="btn btn-ghost btn-sm" onclick="modalEditMod('${m.id}')">Edit</button>
+      ${!BUILTIN_MODULES.find(b=>b.id===m.id)?`<button class="btn btn-danger btn-sm" onclick="deleteMod('${m.id}')">Delete</button>`:''}
+    </div>
+  </div>`).join('')}
+  </div>`;
+}
+function modalAddMod(){openModal('Add Modulee',`<div class="field"><label>Unique ID</label><input class="inp" id="mId" placeholder="e.g. mailsec"/></div><div class="field"><label>Name</label><input class="inp" id="mName"/></div><div class="field"><label>Icon (emoji)</label><input class="inp" id="mIcon" placeholder="📧" maxlength="4"/></div><div class="field"><label>Description</label><input class="inp" id="mDesc"/></div><button class="btn btn-primary btn-full" onclick="saveMod()">Save</button>`);}
+async function saveMod(){const id=document.getElementById('mId').value.trim().replace(/\s+/g,'_');const name=document.getElementById('mName').value.trim();if(!id||!name){toast('ID dan Name wajib','error');return;}if(MODULES.find(m=>m.id===id)){toast('ID already exists','error');return;}MODULES.push({id,name,icon:document.getElementById('mIcon').value.trim()||'📁',desc:document.getElementById('mDesc').value.trim(),color:'#1b9fe0',enabled:true});await DB.set(SK.modules,MODULES);closeModal();toast('Module added','success');renderAdminPanel('modules');}
+function modalEditMod(id){const m=MODULES.find(x=>x.id===id);if(!m)return;openModal('Edit Modulee',`<div class="field"><label>Name</label><input class="inp" id="emN" value="${esc(m.name)}"/></div><div class="field"><label>Icon</label><input class="inp" id="emI" value="${esc(m.icon)}" maxlength="4"/></div><div class="field"><label>Description</label><input class="inp" id="emD" value="${esc(m.desc)}"/></div><button class="btn btn-primary btn-full" onclick="saveEditMod('${id}')">Save</button>`);}
+async function saveEditMod(id){const m=MODULES.find(x=>x.id===id);if(!m)return;m.name=document.getElementById('emN').value.trim()||m.name;m.icon=document.getElementById('emI').value.trim()||m.icon;m.desc=document.getElementById('emD').value.trim()||m.desc;await DB.set(SK.modules,MODULES);closeModal();toast('Module updated','success');renderAdminPanel('modules');}
+async function toggleMod(id){const m=MODULES.find(x=>x.id===id);if(!m)return;m.enabled=!m.enabled;await DB.set(SK.modules,MODULES);toast(`Module ${m.enabled?"enabled":"disabled"}`,m.enabled?'success':'info');renderAdminPanel('modules');}
+async function deleteMod(id){if(!confirm('Delete modul ini?'))return;MODULES=MODULES.filter(m=>m.id!==id);QUESTIONS=QUESTIONS.filter(q=>q.mod!==id);await DB.set(SK.modules,MODULES);await DB.set(SK.questions,QUESTIONS);toast('Module deleted','info');renderAdminPanel('modules');}
+// ═══ PANEL: QUESTIONS ═══
+async function panelQuestions(el){
+  const mf=el.dataset.mf||'all';
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">❓ Question Bank</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select class="inp inp-sm" style="width:auto" onchange="filterQ(this.value)"><option value="all">All Modulese</option>${MODULES.map(m=>`<option value="${m.id}" ${mf===m.id?'selected':''}>${m.icon} ${esc(m.name)}</option>`).join('')}</select>
+      <button class="btn btn-primary btn-sm" onclick="modalAddQ('mcq')">+ Multiple Choice</button>
+      <button class="btn btn-warn btn-sm" onclick="modalAddQ('match')">+ Matching</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Question</th><th>Type</th><th>Module</th><th>Tag</th><th>Difficulty</th><th>Actions</th></tr></thead>
+    <tbody>${QUESTIONS.filter(q=>mf==='all'||q.mod===mf).map(q=>`<tr>
+      <td style="max-width:240px;word-break:break-word">${esc((q.q||'').substring(0,60))}${(q.q||'').length>60?'…':''}</td>
+      <td><span class="chip ${q.type==='match'?'chip-purple':'chip-blue'}" style="font-size:9px">${q.type==='match'?'MATCH':'MCQ'}</span></td>
+      <td style="white-space:nowrap">${modName(q.mod)}</td>
+      <td><span class="chip chip-blue" style="font-size:9px">${esc(q.tag||'-')}</span></td>
+      <td><span style="color:${DIFF_COL[q.d]||'var(--muted)'};font-family:var(--mono);font-size:11px">${DIFF_LABELS[q.d]||q.d||'-'}</span></td>
+      <td style="white-space:nowrap"><button class="btn btn-ghost btn-sm" onclick="modalEditQ('${q.id}')">Edit</button> <button class="btn btn-danger btn-sm" onclick="deleteQ('${q.id}')">Delete</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+  el.dataset.mf=mf;
+}
+function filterQ(v){const el=document.getElementById('adminContent');el.dataset.mf=v;panelQuestions(el);}
+
+function mcqFields(vals){
+  return [0,1,2,3].map(i=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+    <input type="radio" name="qAns" value="${i}" id="qR${i}" ${(vals?.a===i||(!vals&&i===0))?'checked':''} style="accent-color:var(--eset)"/>
+    <label for="qR${i}" style="font-family:var(--mono);font-size:11px;color:var(--eset);width:20px">${'ABCD'[i]}</label>
+    <input class="inp" id="qO${i}" value="${vals?esc(vals.opts[i]||''):''}" placeholder="Option ${i+1}" style="flex:1"/>
+  </div>`).join('');
+}
+function matchFields(pairs){
+  const arr=pairs||[{left:'',right:''},{left:'',right:''},{left:'',right:''},{left:'',right:''}];
+  return arr.map((p,i)=>`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;margin-bottom:8px;align-items:center;">
+    <input class="inp inp-sm" id="pL${i}" value="${esc(p.left)}" placeholder="Left item ${i+1}"/>
+    <span style="color:var(--muted);font-size:16px">→</span>
+    <input class="inp inp-sm" id="pR${i}" value="${esc(p.right)}" placeholder="Right definition ${i+1}"/>
+  </div>`).join('');
+}
+function commonFields(q){
+  return `<div class="field"><label>Question / Instructions</label><textarea class="inp" id="qQ" rows="3">${q?esc(q.q):''}</textarea></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="field"><label>Module</label><select class="inp" id="qMod">${MODULES.map(m=>`<option value="${m.id}" ${q?.mod===m.id?'selected':''}>${esc(m.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Difficulty</label><select class="inp" id="qD"><option value="easy" ${q?.d==='easy'?'selected':''}>Junior</option><option value="medium" ${q?.d==='medium'?'selected':''}>Senior</option><option value="hard" ${q?.d==='hard'?'selected':''}>Expert</option></select></div>
+  </div>
+  <div class="field"><label>Tag</label><input class="inp" id="qTag" value="${q?esc(q.tag||''):''}"/></div>`;
+}
+
+function modalAddQ(type){
+  const isMCQ=type!=='match';
+  openModal(isMCQ?'Add Multiple Choice':'Add Matching Column',`${commonFields(null)}
+  <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin:10px 0 8px">${isMCQ?'ANSWER OPTIONS — mark the correct one':'LEFT → RIGHT PAIRS'}</div>
+  ${isMCQ?mcqFields(null):matchFields(null)}
+  <button class="btn btn-primary btn-full" style="margin-top:10px" onclick="saveQ(null,'${type}')">Save Question</button>`);
+}
+function modalEditQ(id){
+  const q=QUESTIONS.find(x=>x.id===id);if(!q)return;
+  const isMCQ=q.type!=='match';
+  openModal('Edit Question',`${commonFields(q)}
+  <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin:10px 0 8px">${isMCQ?'ANSWER OPTIONS':'PAIRS'}</div>
+  ${isMCQ?mcqFields(q):matchFields(q.pairs)}
+  <button class="btn btn-primary btn-full" style="margin-top:10px" onclick="saveQ('${id}','${q.type||'mcq'}')">Save</button>`);
+}
+async function saveQ(id,type){
+  const qtext=document.getElementById('qQ').value.trim();
+  const mod=document.getElementById('qMod').value;
+  const d=document.getElementById('qD').value;
+  const tag=document.getElementById('qTag').value.trim()||'UMUM';
+  if(!qtext){toast('Write the question first','error');return;}
+  let data;
+  if(type!=='match'){
+    const opts=[0,1,2,3].map(i=>document.getElementById(`qO${i}`).value.trim());
+    if(opts.some(o=>!o)){toast('Fill all answer options','error');return;}
+    const a=parseInt(document.querySelector('input[name="qAns"]:checked').value);
+    data={mod,tag,d,type:'mcq',q:qtext,opts,a};
+  } else {
+    const pairs=[];
+    for(let i=0;i<4;i++){
+      const l=document.getElementById(`pL${i}`)?.value.trim();
+      const r=document.getElementById(`pR${i}`)?.value.trim();
+      if(l&&r) pairs.push({left:l,right:r});
+    }
+    if(pairs.length<2){toast('Minimum 2 pairs required','error');return;}
+    data={mod,tag,d,type:'match',q:qtext,pairs};
+  }
+  if(id){const q=QUESTIONS.find(x=>x.id===id);if(q)Object.assign(q,data);}
+  else QUESTIONS.push({id:'q'+Date.now(),...data});
+  await DB.set(SK.questions,QUESTIONS);
+  closeModal();toast(id?'Question updated':'Question added','success');renderAdminPanel('questions');
+}
+async function deleteQ(id){if(!confirm('Delete questions ini?'))return;QUESTIONS=QUESTIONS.filter(q=>q.id!==id);await DB.set(SK.questions,QUESTIONS);toast('Question deleted','info');renderAdminPanel('questions');}
+
+// ═══ PANEL: USERS ═══
+async function panelUsers(el){
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+    <div style="font-family:var(--head);font-size:20px;font-weight:800;">👥 Manage Admin Accounts</div>
+    <button class="btn btn-primary btn-sm" onclick="modalAddUser()">+ Add Account</button>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody>${ADMIN_USERS.map(u=>`<tr>
+      <td><strong>${esc(u.name||u.username)}</strong></td>
+      <td style="font-family:var(--mono);font-size:12px">${esc(u.username)}</td>
+      <td><span class="chip ${u.role==='superadmin'?'chip-purple':'chip-blue'}" style="font-size:9px">${esc(u.role||'admin')}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="modalEditUser('${u.id}')">Edit</button> ${u.id!=='admin'&&u.id!==CURRENT_ADMIN?.id?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Delete</button>`:'<span style="font-size:10px;color:var(--muted);margin-left:8px">protected</span>'}</td>
+    </tr>`).join('')}</tbody>
+  </table></div></div>`;
+}
+function modalAddUser(){openModal('Tambah Admin Accounts',`<div class="field"><label>Name Lengkap</label><input class="inp" id="uN" placeholder="John Doe"/></div><div class="field"><label>Username</label><input class="inp" id="uU" placeholder="johndoe"/></div><div class="field"><label>Password</label><input class="inp" id="uP" type="password" placeholder="••••••••"/></div><div class="field"><label>Role</label><select class="inp" id="uR"><option value="admin">Admin</option><option value="superadmin">Super Admin</option></select></div><button class="btn btn-primary btn-full" onclick="saveUser(null)">Save</button>`);}
+function modalEditUser(id){const u=ADMIN_USERS.find(x=>x.id===id);if(!u)return;openModal('Edit Account',`<div class="field"><label>Name</label><input class="inp" id="uN" value="${esc(u.name||u.username)}"/></div><div class="field"><label>Username</label><input class="inp" id="uU" value="${esc(u.username)}"/></div><div class="field"><label>Password Baru</label><input class="inp" id="uP" type="password" placeholder="Leave blank to keep current"/></div><div class="field"><label>Role</label><select class="inp" id="uR"><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option><option value="superadmin" ${u.role==='superadmin'?'selected':''}>Super Admin</option></select></div><button class="btn btn-primary btn-full" onclick="saveUser('${id}')">Save</button>`);}
+async function saveUser(id){
+  const name=document.getElementById('uN').value.trim();
+  const username=document.getElementById('uU').value.trim();
+  const password=document.getElementById('uP').value;
+  const role=document.getElementById('uR').value;
+  if(!name||!username){toast('Name dan username wajib','error');return;}
+  if(id){const u=ADMIN_USERS.find(x=>x.id===id);if(!u)return;u.name=name;u.username=username;if(password)u.password=password;u.role=role;}
+  else{if(!password){toast('Password is required','error');return;}if(ADMIN_USERS.find(x=>x.username===username)){toast('Username already taken','error');return;}ADMIN_USERS.push({id:'u'+Date.now(),name,username,password,role});}
+  await DB.set(SK.users,ADMIN_USERS);closeModal();toast(id?'Account updated':'Account added','success');renderAdminPanel('users');
+}
+async function deleteUser(id){if(!confirm('Delete akun ini?'))return;ADMIN_USERS=ADMIN_USERS.filter(u=>u.id!==id);await DB.set(SK.users,ADMIN_USERS);toast('Account deleted','info');renderAdminPanel('users');}
+
+// ═══ PANEL: SETTINGS ═══
+function panelSettings(el){
+  const fc=CFG.firebaseCfg||{};
+  el.innerHTML=`<div style="font-family:var(--head);font-size:20px;font-weight:800;margin-bottom:20px;">⚙️ Settings</div>
+  <div class="card" style="max-width:500px;margin-bottom:20px;">
+    <div class="card-title">🔧 General</div>
+    <div class="field"><label>Platform Title</label><input class="inp" id="stTitle" value="${esc(CFG.title||'')}"/></div>
+    <div class="field"><label>Max Leaderboard Entries</label><input class="inp" type="number" id="stMaxLb" value="${CFG.maxPerLb||30}" min="10" max="200"/></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <input type="checkbox" id="stShowLb" ${CFG.showLbOnResult!==false?'checked':''} style="accent-color:var(--eset)"/>
+      <label for="stShowLb" style="font-size:14px">Show leaderboard on result page</label>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">💾 Save General Settings</button>
+  </div>
+
+  <div class="card" style="max-width:500px;">
+    <div class="card-title" style="margin-bottom:16px">☁ Firebase Realtime Database
+      <span class="chip ${fbDB?'chip-green':'chip-red'}" style="margin-left:auto;font-size:9px">
+        <span class="pulsedot" style="${fbDB?'':'opacity:.35'}"></span>${fbDB?'CONNECTED':'OFFLINE'}
+      </span>
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Sync leaderboard &amp; quiz results across all participants in real-time. Enter your Firebase config below and click <strong style="color:var(--text)">Connect</strong>.</p>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:var(--r);background:rgba(255,255,255,.03);border:1px solid var(--border);margin-bottom:16px;">
+      <div>
+        <div style="font-size:14px;font-weight:600">Enable Firebase Sync</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">Toggle to enable/disable cloud sync</div>
+      </div>
+      <label style="position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0;cursor:pointer">
+        <input type="checkbox" id="fbEnabled" ${CFG.firebaseEnabled?'checked':''} onchange="onFbToggle(this)" style="opacity:0;width:0;height:0;position:absolute"/>
+        <span id="fbTrack" style="position:absolute;inset:0;border-radius:28px;background:${CFG.firebaseEnabled?'var(--eset)':'rgba(255,255,255,.1)'};border:1px solid ${CFG.firebaseEnabled?'var(--eset)':'var(--border2)'};transition:.25s;display:flex;align-items:center;">
+          <span id="fbThumb" style="width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:.25s;transform:translateX(${CFG.firebaseEnabled?'24px':'2px'})"></span>
+        </span>
+      </label>
+    </div>
+
+    <div id="fbConfigWrap" style="display:${CFG.firebaseEnabled?'block':'none'}">
+      <div style="background:rgba(27,159,224,.04);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--eset);letter-spacing:2px;margin-bottom:12px">FIREBASE PROJECT CONFIG</div>
+        <div class="field"><label>API Key</label><input class="inp inp-sm" id="fbApiKey" value="${esc(fc.apiKey||'')}" placeholder="AIzaSy..."/></div>
+        <div class="field"><label>Database URL</label><input class="inp inp-sm" id="fbDbUrl" value="${esc(fc.databaseURL||'')}" placeholder="https://your-project-default-rtdb.firebaseio.com"/></div>
+        <div class="field"><label>Project ID</label><input class="inp inp-sm" id="fbProjId" value="${esc(fc.projectId||'')}" placeholder="your-project-id"/></div>
+        <div class="field"><label>Auth Domain <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="inp inp-sm" id="fbAuth" value="${esc(fc.authDomain||'')}" placeholder="your-project.firebaseapp.com"/></div>
+        <div class="field" style="margin-bottom:0"><label>App ID <span style="color:var(--muted);font-weight:400">(optional)</span></label><input class="inp inp-sm" id="fbAppId" value="${esc(fc.appId||'')}" placeholder="1:123456:web:abcdef"/></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <button class="btn btn-primary" onclick="connectFirebase()" style="flex:1">⚡ Save &amp; Connect</button>
+        <button class="btn btn-ghost btn-sm" onclick="testFirebase()">🔗 Test</button>
+        <button class="btn btn-danger btn-sm" onclick="disconnectFirebase()">✕ Disconnect</button>
+      </div>
+      <div id="fbResult" style="font-family:var(--mono);font-size:11px;min-height:18px;padding:2px 0"></div>
+    </div>
+
+    <div style="margin-top:14px;padding:10px 14px;background:rgba(27,159,224,.04);border:1px solid var(--border);border-radius:var(--r)">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--eset);letter-spacing:2px;margin-bottom:8px">HOW TO GET YOUR CONFIG</div>
+      <ol style="font-size:12px;color:var(--muted);padding-left:16px;line-height:1.9">
+        <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color:var(--eset)">console.firebase.google.com</a> → create a project</li>
+        <li>Build → <strong style="color:var(--text)">Realtime Database</strong> → Create → set rules: <code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px">".read":true, ".write":true</code></li>
+        <li>Project Settings → Your Apps → Web (<code style="background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px">&lt;/&gt;</code>) → copy config fields above</li>
+        <li>Toggle ON, fill in the fields, click <strong style="color:var(--eset)">Save &amp; Connect</strong></li>
+      </ol>
+    </div>
+  </div>`;
+}
+
+function onFbToggle(cb){
+  const on=cb.checked;
+  const track=document.getElementById('fbTrack');
+  const thumb=document.getElementById('fbThumb');
+  const wrap=document.getElementById('fbConfigWrap');
+  if(track){track.style.background=on?'var(--eset)':'rgba(255,255,255,.1)';track.style.borderColor=on?'var(--eset)':'var(--border2)';}
+  if(thumb){thumb.style.transform=`translateX(${on?'24px':'2px'})`;}
+  if(wrap){wrap.style.display=on?'block':'none';}
+}
+
+async function connectFirebase(){
+  const apiKey=document.getElementById('fbApiKey')?.value.trim();
+  const databaseURL=document.getElementById('fbDbUrl')?.value.trim();
+  const projectId=document.getElementById('fbProjId')?.value.trim();
+  const authDomain=document.getElementById('fbAuth')?.value.trim()||`${projectId}.firebaseapp.com`;
+  const appId=document.getElementById('fbAppId')?.value.trim()||'';
+  const res=document.getElementById('fbResult');
+  if(!apiKey||!databaseURL||!projectId){toast('API Key, Database URL and Project ID are required','error');return;}
+  if(!databaseURL.includes('firebaseio.com')){toast('Database URL must end with firebaseio.com','error');return;}
+  const cfg={apiKey,databaseURL,projectId,authDomain,appId};
+  CFG.firebaseCfg=cfg; CFG.firebaseEnabled=true;
+  await DB.set(SK.settings,CFG);
+  if(res){res.style.color='var(--yellow)';res.textContent='⏳ Connecting...';}
+  toast('Connecting...','info');
+  try{
+    // Delete existing apps
+    if(firebase.apps.length){for(const a of firebase.apps){try{await a.delete();}catch{}}}
+    await new Promise(r=>setTimeout(r,400));
+    const app=firebase.initializeApp(cfg);
+    fbDB=firebase.database(app);
+    // Test write/read
+    const ref=fbDB.ref('_healthcheck_');
+    await ref.set({ts:Date.now()});
+    await ref.remove();
+    if(res){res.style.color='var(--green)';res.textContent='✅ Connected! Firebase is active and working.';}
+    toast('Firebase connected successfully!','success');
+    renderAdminPanel('settings');
+  }catch(e){
+    fbDB=null;
+    if(res){res.style.color='var(--red)';res.textContent=`❌ Failed: ${e.message.substring(0,80)}`;}
+    toast('Connection failed — check config and Firebase rules','error');
+  }
+}
+
+async function testFirebase(){
+  const res=document.getElementById('fbResult');
+  if(!fbDB){if(res){res.style.color='var(--red)';res.textContent='❌ Not connected. Click Save & Connect first.';}return;}
+  if(res){res.style.color='var(--yellow)';res.textContent='⏳ Testing read/write...';}
+  try{
+    await fbDB.ref('_test_').set({ts:Date.now()});
+    await fbDB.ref('_test_').remove();
+    if(res){res.style.color='var(--green)';res.textContent='✅ Read/write test passed — Firebase is working.';}
+  }catch(e){if(res){res.style.color='var(--red)';res.textContent=`❌ ${e.message.substring(0,80)}`;}}
+}
+
+async function disconnectFirebase(){
+  if(!confirm('Disconnect Firebase? Data will only be saved locally from now.'))return;
+  try{if(fbDB&&firebase.apps.length){for(const a of firebase.apps){try{await a.delete();}catch{}}}}catch{}
+  fbDB=null; CFG.firebaseEnabled=false;
+  await DB.set(SK.settings,CFG);
+  toast('Firebase disconnected — using local storage','info');
+  renderAdminPanel('settings');
+}
+
+async function saveSettings(){
+  CFG.title=document.getElementById('stTitle')?.value.trim()||CFG.title;
+  CFG.maxPerLb=parseInt(document.getElementById('stMaxLb')?.value)||30;
+  CFG.showLbOnResult=document.getElementById('stShowLb')?.checked;
+  await DB.set(SK.settings,CFG);toast('Settings saved','success');
+}
+// ═══ PANEL: EXPORT ═══
+async function panelExport(el){
+  const results=await fbResults(),lb=await fbLb();
+  el.innerHTML=`<div style="font-family:var(--head);font-size:20px;font-weight:800;margin-bottom:20px;">📤 Export Data</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
+    <div class="card"><div class="card-title">📋 Quiz Results</div><p style="color:var(--muted);font-size:13px;margin-bottom:14px">${results.length} entries</p><div style="display:flex;flex-direction:column;gap:8px;"><button class="btn btn-primary btn-sm" onclick="exportCSV()">⬇ Export CSV</button><button class="btn btn-ghost btn-sm" onclick="exportJSON('results')">⬇ Export JSON</button></div></div>
+    <div class="card"><div class="card-title">🏆 Leaderboard</div><p style="color:var(--muted);font-size:13px;margin-bottom:14px">${lb.length} entries</p><div style="display:flex;flex-direction:column;gap:8px;"><button class="btn btn-primary btn-sm" onclick="exportLbCSV()">⬇ Export CSV</button><button class="btn btn-ghost btn-sm" onclick="exportJSON('lb')">⬇ Export JSON</button></div></div>
+    <div class="card"><div class="card-title">❓ Question Bank</div><p style="color:var(--muted);font-size:13px;margin-bottom:14px">${QUESTIONS.length} questions</p><button class="btn btn-ghost btn-sm" onclick="exportJSON('questions')">⬇ Export JSON</button></div>
+    <div class="card"><div class="card-title">⚙️ Konfigurasi</div><p style="color:var(--muted);font-size:13px;margin-bottom:14px">Module + setting</p><button class="btn btn-ghost btn-sm" onclick="exportJSON('config')">⬇ Export JSON</button></div>
+  </div>`;
+}
+async function exportCSV(){const r=await fbResults();const hdr='Name,Avatar,Module,Difficulty,Score,Correct,Wrong,Accuracy,Chain,Time\n';const rows=r.map(x=>[`"${(x.name||'').replace(/"/g,'""')}"`,x.avatar||'',`"${modName(x.modId)}"`,DIFF_LABELS[x.diff]||x.diff,x.score,x.correct,x.wrong,x.acc+'%',x.maxStreak,`"${fmtDate(x.ts)}"`].join(','));dlFile('prosperita_results.csv','text/csv',hdr+rows.join('\n'));toast('CSV downloaded','success');}
+async function exportLbCSV(){const lb=await fbLb();const hdr='Rank,Name,Module,Difficulty,Score,Accuracy\n';const rows=lb.map((e,i)=>[i+1,`"${(e.name||'').replace(/"/g,'""')}"`,`"${modName(e.modId)}"`,DIFF_LABELS[e.diff]||e.diff,e.score,e.acc+'%'].join(','));dlFile('prosperita_leaderboard.csv','text/csv',hdr+rows.join('\n'));toast('Leaderboard CSV downloaded','success');}
+async function exportJSON(type){let data,name;if(type==='results'){data=await fbResults();name='prosperita_results.json';}else if(type==='lb'){data=await fbLb();name='prosperita_leaderboard.json';}else if(type==='questions'){data=QUESTIONS;name='prosperita_questions.json';}else{data={settings:CFG,modules:MODULES};name='prosperita_config.json';}dlFile(name,'application/json',JSON.stringify(data,null,2));toast(`${name} downloaded`,'success');}
+function dlFile(n,t,c){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:t}));a.download=n;a.click();}
+
+// ═══ GUEST FLOW ═══
+function renderAvatars(){
+  document.getElementById('avatarGrid').innerHTML=AVATARS.map((a,i)=>`<div class="avatar-opt ${i===0?'selected':''}" onclick="selAvatar(${i},this)">${a}</div>`).join('');
+  SELECTED_AVATAR=0;
+}
+function selAvatar(i,el){document.querySelectorAll('.avatar-opt').forEach(x=>x.classList.remove('selected'));el.classList.add('selected');SELECTED_AVATAR=i;}
+
+function checkUrlParams(){
+  const p=new URLSearchParams(location.search);
+  const c=p.get('quiz');
+  if(c){document.getElementById('quizCode').value=c.toUpperCase();loadQuizCode();}
+}
+
+function loadQuizCode(){
+  let raw=document.getElementById('quizCode').value.trim();
+  const statusEl=document.getElementById('codeStatus');
+  // handle URL paste
+  try{if(raw.startsWith('http')){const u=new URL(raw);raw=u.searchParams.get('quiz')||raw;document.getElementById('quizCode').value=raw.toUpperCase();}}catch{}
+  const code=raw.toUpperCase();
+  if(!code){statusEl.textContent='';LOADED_SHARE=null;return;}
+  const share=QUIZ_SHARES[code];
+  if(!share){statusEl.style.color='var(--red)';statusEl.textContent=`❌ Code "${code}" not found`;LOADED_SHARE=null;return;}
+  const m=MODULES.find(x=>x.id===share.modId);
+  if(!m||!m.enabled){statusEl.style.color='var(--red)';statusEl.textContent='❌ Module kuis ini tidak aktif';LOADED_SHARE=null;return;}
+  const cnt=QUESTIONS.filter(q=>q.mod===share.modId).length;
+  if(!cnt){statusEl.style.color='var(--red)';statusEl.textContent='❌ Module ini belum memiliki questions';LOADED_SHARE=null;return;}
+  LOADED_SHARE={code,modId:share.modId,diff:share.diff};
+  statusEl.style.color='var(--green)';
+  statusEl.textContent=`✅ ${m.icon} ${m.name} · ${DIFF_LABELS[share.diff]} · ${cnt} questions`;
+  tone(440,'sine',.12);
+}
+
+function startGuest(){
+  const name=document.getElementById('guestName').value.trim();
+  if(!name){toast('Please enter your name!','error');document.getElementById('guestName').focus();return;}
+  if(!LOADED_SHARE){toast('Please load a quiz code first!','error');document.getElementById('quizCode').focus();return;}
+  const {code,modId,diff}=LOADED_SHARE;
+  const pool=QUESTIONS.filter(q=>q.mod===modId);
+  if(!pool.length){toast('This module has no questions','error');return;}
+  G.name=name;G.avatar=AVATARS[SELECTED_AVATAR];G.modId=modId;G.diff=diff;G.quizCode=code;
+  G.score=0;G.streak=0;G.maxStreak=0;G.correct=0;G.wrong=0;G.cur=0;G.combo=1;
+  G.ll50=false;G.llSk=false;G.llFr=false;G.frozen=false;G.lastEntry=null;
+  const cnt={easy:10,medium:15,hard:20};G.maxTime=30;
+  G.qs=shuffle(pool).slice(0,Math.min(cnt[diff]||10,pool.length));
+  goTo('pgQuiz');sfxBoot();renderQ();
+}
+function replayQuiz(){goTo('pgGuest');}
+
+// ═══ QUIZ ENGINE ═══
+function renderQ(){
+  const q=G.qs[G.cur],total=G.qs.length;
+  G.answered=false;
+  const dc=DIFF_COL[q.d||G.diff]||'var(--muted)';
+  const isMCQ=(q.type||'mcq')!=='match';
+  document.getElementById('qScore').textContent=G.score.toLocaleString();
+  document.getElementById('qStreak').textContent=G.streak;
+  document.getElementById('qProgMeta').textContent=`Q${G.cur+1}/${total}`;
+  document.getElementById('qModMeta').textContent=(MODULES.find(m=>m.id===G.modId)||{name:''}).name.toUpperCase();
+  document.getElementById('qProgFill').style.width=(G.cur/total*100)+'%';
+  document.getElementById('comboRow').textContent=G.combo>1?`⚡ COMBO ×${G.combo}`:'';
+  document.getElementById('qNumLbl').textContent=`Q-${String(G.cur+1).padStart(3,'0')}`;
+  document.getElementById('qTagLbl').textContent=q.tag||'ESET';
+  const dl=document.getElementById('qDiffLbl');
+  dl.textContent={easy:'JUNIOR',medium:'SENIOR',hard:'EXPERT'}[q.d||G.diff]||'';
+  dl.style.cssText=`background:${dc}18;color:${dc};border:1px solid ${dc}33;`;
+  document.getElementById('qTypeLbl').style.display=isMCQ?'none':'inline-flex';
+  document.getElementById('qTextEl').textContent=q.q;
+  const wrap=document.getElementById('ansWrap');wrap.innerHTML='';
+  if(isMCQ){
+    const grid=document.createElement('div');grid.className='agrid';grid.id='ansGrid';wrap.appendChild(grid);
+    ['A','B','C','D'].forEach((lbl,i)=>{const btn=document.createElement('button');btn.className='abtn';btn.innerHTML=`<span class="albl">${lbl}</span>${esc(q.opts[i]||'')}`;btn.onclick=()=>pickAns(i);grid.appendChild(btn);});
+    document.getElementById('ll5050').disabled=G.ll50;
+    document.getElementById('llSkip').disabled=G.llSk;
+    document.getElementById('ll5050').style.visibility='visible';
+  } else {
+    renderMatchQ(q,wrap);
+    document.getElementById('ll5050').style.visibility='hidden';
+    document.getElementById('llSkip').disabled=G.llSk;
+  }
+  document.getElementById('llFreeze').disabled=G.llFr;
+  startTimer();
+}
+
+function renderMatchQ(q,wrap){
+  const rights=shuffle(q.pairs.map(p=>p.right));
+  wrap.innerHTML=`<div class="match-wrap">
+    <div class="match-left">${q.pairs.map((p,i)=>`<div class="match-item-l"><span class="match-lbl">${i+1}</span>${esc(p.left)}</div>`).join('')}</div>
+    <div class="match-right">${q.pairs.map((p,i)=>`<select class="match-sel" id="ms${i}"><option value="">— select —</option>${rights.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('')}</select>`).join('')}
+    </div>
+  </div>
+  <button class="btn btn-primary btn-full" id="matchSubmit" onclick="submitMatch()" style="margin-top:10px">✓ Submit Answer</button>`;
+}
+
+function submitMatch(){
+  if(G.answered)return;G.answered=true;clearInterval(G.timer);
+  const q=G.qs[G.cur];let correct=0;
+  q.pairs.forEach((p,i)=>{
+    const sel=document.getElementById(`ms${i}`);if(!sel)return;sel.disabled=true;
+    if(sel.value===p.right){correct++;sel.classList.add('ok');}else{sel.classList.add('ng');}
+  });
+  const allOk=correct===q.pairs.length;
+  const btn=document.getElementById('matchSubmit');if(btn)btn.style.display='none';
+  if(allOk){
+    G.streak++;G.correct++;if(G.streak>G.maxStreak)G.maxStreak=G.streak;G.combo=Math.min(1+Math.floor(G.streak/3),4);
+    const pts=Math.round({easy:150,medium:240,hard:380}[G.diff]*G.combo);G.score+=pts;sfxOk();
+    showFb('correct','✅ Semua Correct!',`+${pts} pts`);
+    if(G.streak%3===0&&G.streak>0)chainToast();
+  } else {
+    G.streak=0;G.combo=1;G.wrong++;sfxBad();
+    showFb('wrong',`${correct}/${q.pairs.length} Correct`,'Check the correct answers above');
+    q.pairs.forEach((p,i)=>{const sel=document.getElementById(`ms${i}`);if(sel&&sel.value!==p.right){const h=document.createElement('div');h.style.cssText='font-size:11px;color:var(--green);font-family:var(--mono);padding:3px 0 0 4px';h.textContent='✓ '+p.right;sel.after(h);}});
+  }
+  setTimeout(nextQ,2400);
+}
+
+function startTimer(){
+  clearInterval(G.timer);G.timeLeft=G.maxTime;G.frozen=false;updateTimerUI();
+  G.timer=setInterval(()=>{if(G.frozen||G.answered)return;G.timeLeft--;sfxTick(G.timeLeft);updateTimerUI();if(G.timeLeft<=0){clearInterval(G.timer);onTimeout();}},1000);
+}
+function updateTimerUI(){
+  const t=G.timeLeft,p=t/G.maxTime,c=169.6;
+  document.getElementById('trFg').style.strokeDashoffset=c*(1-p);
+  document.getElementById('trTxt').textContent=t;
+  document.getElementById('trFg').style.stroke=p>.5?'var(--eset)':p>.25?'var(--yellow)':'var(--red)';
+}
+function pickAns(idx){
+  if(G.answered)return;G.answered=true;clearInterval(G.timer);
+  const q=G.qs[G.cur];const grid=document.getElementById('ansGrid');if(!grid)return;
+  const btns=[...grid.querySelectorAll('.abtn')];btns.forEach(b=>b.disabled=true);
+  if(idx===q.a){
+    btns[idx].classList.add('correct');G.streak++;G.correct++;if(G.streak>G.maxStreak)G.maxStreak=G.streak;G.combo=Math.min(1+Math.floor(G.streak/3),4);
+    const spd=Math.ceil(G.timeLeft/G.maxTime*100);const base={easy:100,medium:160,hard:250}[G.diff]||100;const pts=Math.round(base*G.combo*(0.5+spd/100));G.score+=pts;sfxOk();
+    showFb('correct','✅ Correct!',`+${pts} pts`);floatPt(`+${pts}`,btns[idx]);if(G.streak>0&&G.streak%3===0)chainToast();
+  } else {btns[idx].classList.add('wrong');btns[q.a].classList.add('reveal');G.streak=0;G.combo=1;G.wrong++;sfxBad();showFb('wrong','❌ Wrong!','The correct answer is highlighted');}
+  setTimeout(nextQ,1700);
+}
+function onTimeout(){if(G.answered)return;G.answered=true;const q=G.qs[G.cur];const grid=document.getElementById('ansGrid');if(grid){const btns=[...grid.querySelectorAll('.abtn')];btns.forEach(b=>b.disabled=true);if(btns[q.a])btns[q.a].classList.add('reveal');}G.streak=0;G.combo=1;G.wrong++;sfxBad();showFb('timeout','⏱ Time\'s Up','');setTimeout(nextQ,1700);}
+function nextQ(){hideFb();G.cur++;document.getElementById('qScore').textContent=G.score.toLocaleString();document.getElementById('qStreak').textContent=G.streak;if(G.cur>=G.qs.length)endQuiz();else renderQ();}
+
+// lifelines
+document.getElementById('ll5050').onclick=()=>{if(G.ll50||G.answered)return;G.ll50=true;document.getElementById('ll5050').disabled=true;const q=G.qs[G.cur];const btns=[...document.getElementById('ansGrid').querySelectorAll('.abtn')];let r=0;for(let i=0;i<btns.length&&r<2;i++){if(i!==q.a){btns[i].style.visibility='hidden';r++;}}tone(440,'sine',.15);};
+document.getElementById('llSkip').onclick=()=>{if(G.llSk||G.answered)return;G.llSk=true;document.getElementById('llSkip').disabled=true;clearInterval(G.timer);G.answered=true;tone(330,'sine',.15);setTimeout(()=>{hideFb();G.cur++;if(G.cur>=G.qs.length)endQuiz();else renderQ();},200);};
+document.getElementById('llFreeze').onclick=()=>{if(G.llFr||G.answered)return;G.llFr=true;document.getElementById('llFreeze').disabled=true;G.frozen=true;tone(880,'sine',.25);document.getElementById('trTxt').style.color='var(--eset)';setTimeout(()=>{G.frozen=false;document.getElementById('trTxt').style.color='';},5000);};
+
+// ═══ END QUIZ + SAVE ═══
+async function endQuiz(){
+  clearInterval(G.timer);
+  const pct=Math.round(G.correct/G.qs.length*100);
+  const ts=Date.now();
+  const entry={name:G.name,avatar:G.avatar,modId:G.modId,diff:G.diff,score:G.score,correct:G.correct,wrong:G.wrong,acc:pct,maxStreak:G.maxStreak,total:G.qs.length,quizCode:G.quizCode||'',ts};
+  G.lastEntry=entry;
+  // Local save
+  const results=(await DB.get(SK.results))||[];results.push(entry);await DB.set(SK.results,results);
+  let lb=(await DB.get(SK.lb))||[];lb.push(entry);lb.sort((a,b)=>b.score-a.score);lb=lb.slice(0,CFG.maxPerLb||30);await DB.set(SK.lb,lb);
+  // Firebase
+  if(fbDB){await DB.fbPush('results',entry);const k=`${String(entry.score).padStart(10,'0')}_${ts}`;await DB.fbSet(`leaderboard/${k}`,entry);}
+  // UI
+  goTo('pgResult');dataRain();
+  document.getElementById('resAvatar').textContent=G.avatar;document.getElementById('resName').textContent=G.name;
+  document.getElementById('resScore').textContent=G.score.toLocaleString();document.getElementById('rsCorrect').textContent=G.correct;
+  document.getElementById('rsWrong').textContent=G.wrong;document.getElementById('rsStreak').textContent=G.maxStreak;document.getElementById('rsAcc').textContent=pct+'%';
+  let lvl,col;if(pct>=90){lvl='EXPERT CERTIFIED';col='var(--green)';}else if(pct>=75){lvl='SENIOR ANALYST';col='var(--eset)';}else if(pct>=60){lvl='MID-LEVEL';col='var(--yellow)';}else if(pct>=40){lvl='JUNIOR';col='var(--orange)';}else{lvl='TRAINEE';col='var(--muted)';}
+  const rl=document.getElementById('resDifficulty');rl.textContent=lvl;rl.style.borderColor=col;rl.style.color=col;
+  if(CFG.showLbOnResult!==false)await refreshResLb();else document.getElementById('resLbWrap').innerHTML='<p style="color:var(--muted);text-align:center;padding:16px;font-size:12px">Leaderboard disembunyikan</p>';
+}
+
+async function refreshResLb(){
+  const wrap=document.getElementById('resLbWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono);font-size:12px">Memuat...</div>';
+  const lb=await fbLb();
+  if(!lb.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono)">Belum ada data</div>';return;}
+  const medals=['🥇','🥈','🥉'],cls=['gold','silver','bronze'];const me=G.lastEntry;
+  wrap.innerHTML=lb.slice(0,15).map((e,i)=>{
+    const isMe=me&&e.name===me.name&&e.score===me.score&&e.ts===me.ts;
+    const m=MODULES.find(x=>x.id===e.modId)||{name:e.modId,color:'#1b9fe0'};
+    return `<div class="lb-row-r ${cls[i]||''} ${isMe?'you':''}">
+      <div class="lb-pos">${medals[i]||i+1}</div>
+      <div class="lb-info"><span class="lb-avatar">${e.avatar||'👤'}</span><span class="lb-pname">${esc(e.name)}</span><span class="lb-role-chip" style="border-color:${m.color}55;color:${m.color}">${m.name}</span>${isMe?'<span style="font-family:var(--mono);font-size:9px;color:var(--eset);margin-left:4px">← Kamu</span>':''}</div>
+      <div class="lb-acc">${e.acc}%</div><div class="lb-pts">${(e.score||0).toLocaleString()}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ LANDING STATS ═══
+async function updateLandingStats(){
+  const results=await fbResults();
+  document.getElementById('statPlayers').textContent=new Set(results.map(r=>r.name)).size;
+  document.getElementById('statSessions').textContent=results.length;
+  document.getElementById('statTotalQ').textContent=QUESTIONS.length;
+}
+
+// ═══ FX ═══
+function showFb(type,msg,sub){const box=document.getElementById('fbBox');box.className='fb-box '+type;document.getElementById('fbMsg').textContent=msg;document.getElementById('fbSub').textContent=sub;requestAnimationFrame(()=>box.classList.add('show'));}
+function hideFb(){document.getElementById('fbBox').classList.remove('show');}
+function chainToast(){const el=document.createElement('div');el.className='chain-toast';el.textContent=`🔗 Chain ×${G.streak}!`;document.body.appendChild(el);setTimeout(()=>el.remove(),2200);}
+function floatPt(text,anchor){const r=anchor.getBoundingClientRect();const el=document.createElement('div');el.className='float-pt';el.textContent=text;el.style.left=(r.left+r.width/2-20)+'px';el.style.top=(r.top-5)+'px';document.body.appendChild(el);setTimeout(()=>el.remove(),900);}
+function dataRain(){const ws=['ESET','SECURE','✓','EDR','SOC','🛡️','PROTECT'];const cols=['var(--eset)','var(--green)','rgba(27,159,224,.5)'];for(let i=0;i<25;i++){setTimeout(()=>{const el=document.createElement('div');el.style.cssText=`position:fixed;pointer-events:none;z-index:300;font-family:var(--mono);font-size:${10+Math.random()*7}px;color:${cols[Math.floor(Math.random()*cols.length)]};left:${Math.random()*100}vw;top:-20px;opacity:0;animation:floatUp ${3+Math.random()*3}s linear ${Math.random()*0.5}s forwards`;el.textContent=ws[Math.floor(Math.random()*ws.length)];document.body.appendChild(el);setTimeout(()=>el.remove(),7000);},i*55);}}
+
+// ═══ AUDIO ═══
+let actx;
+function tone(f,t='sine',d=.15,v=.2){try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);o.start();o.stop(actx.currentTime+d);}catch{}}
+function sfxOk(){[440,554,659].forEach((f,i)=>setTimeout(()=>tone(f,'sine',.1),i*70));}
+function sfxBad(){tone(180,'sawtooth',.2);}
+function sfxTick(t){tone(t<4?1100:660,'square',.04,.07);}
+function sfxBoot(){[220,330,440,550].forEach((f,i)=>setTimeout(()=>tone(f,'sine',.1),i*60));}
+
+// ═══ UTILS ═══
+function shuffle(a){return[...a].sort(()=>Math.random()-.5);}
+function esc(s){if(!s)return'';const d=document.createElement('div');d.textContent=String(s);return d.innerHTML;}
+function modName(id){return MODULES.find(m=>m.id===id)?.name||id;}
+function fmtDate(ts){try{return new Date(ts).toLocaleString('id-ID',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}catch{return'-';}}
+document.head.insertAdjacentHTML('beforeend','<style>@keyframes dataFall{0%{opacity:0;transform:translateY(0)}10%{opacity:.7}90%{opacity:.3}100%{opacity:0;transform:translateY(110vh)}}</style>');
+
+init();
+</script></body></html>
