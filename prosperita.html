@@ -584,9 +584,12 @@ async function pushLbToFB(){
 
 // ═══ PANEL: SHARING ═══
 async function panelSharing(el){
-  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div style="font-family:var(--head);font-size:20px;font-weight:800;">🔗 Quiz Sharing</div>
-    <button class="btn btn-primary btn-sm" onclick="modalCreateShare()">+ Create Code</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="modalQuickLink()">⚡ Quick Link</button>
+      <button class="btn btn-primary btn-sm" onclick="modalCreateShare()">+ Create Named Code</button>
+    </div>
   </div>
   <div class="card" style="margin-bottom:20px;padding:14px 18px;">
     <div style="font-size:13px;color:var(--text2);">Create quiz codes for guest participants — codes lock the module & difficulty so participants skip the selection step. Share the code or full URL.</div>
@@ -595,7 +598,7 @@ async function panelSharing(el){
     ${Object.entries(QUIZ_SHARES).map(([code,s])=>{
       const m=MODULES.find(x=>x.id===s.modId)||{name:s.modId,icon:'📁'};
       const cnt=QUESTIONS.filter(q=>q.mod===s.modId).length;
-      const url=`${location.origin}${location.pathname}?quiz=${code}`;
+      const url=`${location.origin}${location.pathname}?quiz=${code}&m=${s.modId}&d=${s.diff}`;
       return `<div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div style="flex:1;min-width:200px;">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
@@ -611,8 +614,52 @@ async function panelSharing(el){
     ${!Object.keys(QUIZ_SHARES).length?'<div class="card" style="text-align:center;padding:30px;color:var(--muted);font-family:var(--mono);">No codes yet. Create your first one!</div>':''}
   </div>`;
 }
+function modalQuickLink(){
+  const mods=MODULES.filter(m=>m.enabled);
+  if(!mods.length){toast('No active modules','error');return;}
+  openModal('⚡ Quick Share Link',`
+  <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Generate a direct shareable URL — no code storage needed. Works on any device immediately.</p>
+  <div class="field"><label>Module</label>
+    <select class="inp" id="qlMod">${mods.map(m=>`<option value="${m.id}">${m.icon} ${m.name}</option>`).join('')}</select>
+  </div>
+  <div class="field"><label>Difficulty</label>
+    <select class="inp" id="qlDiff">
+      <option value="easy">🟢 Junior</option>
+      <option value="medium">🟡 Senior</option>
+      <option value="hard">🔴 Expert</option>
+    </select>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="generateQuickLink()">🔗 Generate Link</button>
+  <div id="qlResult" style="margin-top:14px"></div>`);
+}
+
+function generateQuickLink(){
+  const modId=document.getElementById('qlMod').value;
+  const diff=document.getElementById('qlDiff').value;
+  const url=`${location.origin}${location.pathname}?m=${modId}&d=${diff}`;
+  const res=document.getElementById('qlResult');
+  res.innerHTML=`
+  <div style="background:rgba(27,159,224,.06);border:1px solid var(--border2);border-radius:var(--r);padding:12px">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--eset);letter-spacing:2px;margin-bottom:8px">SHAREABLE URL</div>
+    <div style="font-family:var(--mono);font-size:11px;word-break:break-all;color:var(--text);margin-bottom:10px">${url}</div>
+    <button class="btn btn-primary btn-sm btn-full" onclick="copyDirectUrl('${url}')">📋 Copy URL</button>
+  </div>`;
+}
+
+function copyDirectUrl(url){
+  navigator.clipboard?.writeText(url)
+    .then(()=>toast('URL copied! Share this with participants.','success'))
+    .catch(()=>{
+      const ta=document.createElement('textarea');
+      ta.value=url;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast('URL copied!','success');}
+      catch{toast('Copy this URL: '+url,'info');}
+      document.body.removeChild(ta);
+    });
+}
+
 function modalCreateShare(){
-  openModal('Create Quiz Code',`
+  openModal('Create Named Quiz Code',`
   <div class="field"><label>Quiz Code</label><input class="inp" id="scCode" placeholder="e.g. ESET-2024" maxlength="20" style="font-family:var(--mono);letter-spacing:2px;text-transform:uppercase" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"/></div>
   <div class="field"><label>Module</label><select class="inp" id="scMod">${MODULES.filter(m=>m.enabled).map(m=>`<option value="${m.id}">${m.icon} ${esc(m.name)}</option>`).join('')}</select></div>
   <div class="field"><label>Difficulty</label><select class="inp" id="scDiff"><option value="easy">🟢 Junior</option><option value="medium">🟡 Senior</option><option value="hard">🔴 Expert</option></select></div>
@@ -627,7 +674,7 @@ async function saveShare(){
   if(!QUESTIONS.filter(q=>q.mod===modId).length){toast('This module has no questions yet','error');return;}
   QUIZ_SHARES[code]={modId,diff,createdBy:CURRENT_ADMIN?.username||'admin',ts:Date.now()};
   await DB.set(SK.shares,QUIZ_SHARES);
-  closeModal();toast(`Kode "${code}" dibuat`,'success');renderAdminPanel('sharing');
+  closeModal();toast(`Code "${code}" created! Copy the full URL to share.`,'success');renderAdminPanel('sharing');
 }
 async function deleteShare(code){
   if(!confirm(`Delete code "${code}"?`))return;
@@ -635,7 +682,15 @@ async function deleteShare(code){
   toast('Code deleted','info');renderAdminPanel('sharing');
 }
 function copyUrl(url,code){
-  navigator.clipboard?.writeText(url).then(()=>toast('URL copied!','success')).catch(()=>navigator.clipboard?.writeText(code).then(()=>toast('Code copied!','success')));
+  navigator.clipboard?.writeText(url)
+    .then(()=>toast('URL copied! Share this full URL with participants.','success'))
+    .catch(()=>{
+      // Fallback: try copying just the URL manually
+      const ta=document.createElement('textarea');
+      ta.value=url;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast('URL copied!','success');}catch{toast('Copy: '+url,'info');}
+      document.body.removeChild(ta);
+    });
 }
 
 // ═══ PANEL: MODULES ═══
@@ -954,23 +1009,88 @@ function selAvatar(i,el){document.querySelectorAll('.avatar-opt').forEach(x=>x.c
 
 function checkUrlParams(){
   const p=new URLSearchParams(location.search);
-  const c=p.get('quiz');
-  if(c){document.getElementById('quizCode').value=c.toUpperCase();loadQuizCode();}
+  const code=p.get('quiz');
+  const modId=p.get('m');
+  const diff=p.get('d');
+
+  if(!code && !modId) return; // Nothing to do
+
+  // Register params as a virtual share entry so loadQuizCode can find it
+  if(modId && diff){
+    const virtualCode = code ? code.toUpperCase() : `${modId}:${diff}`.toUpperCase();
+    // Add to in-memory QUIZ_SHARES (not saved — just for this session)
+    if(!QUIZ_SHARES[virtualCode]){
+      QUIZ_SHARES[virtualCode]={modId,diff,createdBy:'url',ts:Date.now()};
+    }
+    if(code){
+      document.getElementById('quizCode').value=code.toUpperCase();
+    } else {
+      document.getElementById('quizCode').value=virtualCode;
+    }
+  } else if(code){
+    document.getElementById('quizCode').value=code.toUpperCase();
+  }
+
+  // Go to guest page and auto-load
+  goTo('pgGuest');
+  setTimeout(()=>loadQuizCode(),150);
 }
 
 function loadQuizCode(){
   let raw=document.getElementById('quizCode').value.trim();
   const statusEl=document.getElementById('codeStatus');
-  // handle URL paste
-  try{if(raw.startsWith('http')){const u=new URL(raw);raw=u.searchParams.get('quiz')||raw;document.getElementById('quizCode').value=raw.toUpperCase();}}catch{}
+  statusEl.textContent='';LOADED_SHARE=null;
+  if(!raw)return;
+
+  // If URL pasted — extract params
+  let urlModId=null,urlDiff=null,urlCode=null;
+  try{
+    if(raw.startsWith('http')){
+      const u=new URL(raw);
+      urlCode=u.searchParams.get('quiz');
+      urlModId=u.searchParams.get('m');
+      urlDiff=u.searchParams.get('d');
+      if(urlCode){
+        raw=urlCode;
+        document.getElementById('quizCode').value=raw.toUpperCase();
+      }
+    }
+  }catch{}
+
   const code=raw.toUpperCase();
-  if(!code){statusEl.textContent='';LOADED_SHARE=null;return;}
-  const share=QUIZ_SHARES[code];
-  if(!share){statusEl.style.color='var(--red)';statusEl.textContent=`❌ Code "${code}" not found`;LOADED_SHARE=null;return;}
+
+  // 1. Try local QUIZ_SHARES first (admin on same device/browser)
+  let share=QUIZ_SHARES[code];
+
+  // 2. If not found locally, try URL-embedded params (shared link)
+  if(!share && urlModId && urlDiff){
+    share={modId:urlModId, diff:urlDiff};
+  }
+
+  // 3. Try decoding the code itself: format "MODID:DIFF" e.g. secmgmt:easy
+  if(!share && code.includes(':')){
+    const parts=code.toLowerCase().split(':');
+    if(parts.length===2) share={modId:parts[0],diff:parts[1]};
+  }
+
+  if(!share){
+    statusEl.style.color='var(--red)';
+    statusEl.textContent=`❌ Code "${code}" not found. Ask your admin for the full quiz URL.`;
+    return;
+  }
+
   const m=MODULES.find(x=>x.id===share.modId);
-  if(!m||!m.enabled){statusEl.style.color='var(--red)';statusEl.textContent='❌ Module kuis ini tidak aktif';LOADED_SHARE=null;return;}
+  if(!m||!m.enabled){
+    statusEl.style.color='var(--red)';
+    statusEl.textContent='❌ This quiz module is inactive or not available.';
+    return;
+  }
   const cnt=QUESTIONS.filter(q=>q.mod===share.modId).length;
-  if(!cnt){statusEl.style.color='var(--red)';statusEl.textContent='❌ Module ini belum memiliki questions';LOADED_SHARE=null;return;}
+  if(!cnt){
+    statusEl.style.color='var(--red)';
+    statusEl.textContent='❌ This module has no questions yet.';
+    return;
+  }
   LOADED_SHARE={code,modId:share.modId,diff:share.diff};
   statusEl.style.color='var(--green)';
   statusEl.textContent=`✅ ${m.icon} ${m.name} · ${DIFF_LABELS[share.diff]} · ${cnt} questions`;
